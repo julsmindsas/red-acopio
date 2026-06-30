@@ -34,24 +34,44 @@ export class JsonStore implements CenterRepository {
   private seedPath = path.join(process.cwd(), "data", "centers.seed.json");
 
   /**
+   * Modo solo-lectura: se activa cuando el sistema de archivos no permite
+   * escribir (p. ej. el FS efímero/solo-lectura de Vercel cuando NO hay base de
+   * datos configurada). En ese caso, list()/getById() leen directamente la
+   * semilla y create() devuelve un error claro pidiendo configurar Postgres.
+   */
+  private readOnly = false;
+
+  /**
    * Inicializa el store: si no existe data/centers.local.json, lo crea
-   * copiando el archivo semilla.
+   * copiando el archivo semilla. Si el FS es de solo lectura, cae a modo
+   * solo-lectura sirviendo la semilla.
    */
   async init(): Promise<void> {
     try {
       await fs.access(this.localPath);
     } catch {
-      // El archivo no existe; lo creamos a partir del semilla
-      const seed = await fs.readFile(this.seedPath, "utf-8");
-      // Nos aseguramos de que el directorio data/ exista
-      await fs.mkdir(path.dirname(this.localPath), { recursive: true });
-      await fs.writeFile(this.localPath, seed, "utf-8");
+      // El archivo local no existe; intentamos crearlo a partir de la semilla.
+      try {
+        const seed = await fs.readFile(this.seedPath, "utf-8");
+        await fs.mkdir(path.dirname(this.localPath), { recursive: true });
+        await fs.writeFile(this.localPath, seed, "utf-8");
+      } catch {
+        // No se pudo escribir (FS de solo lectura, p. ej. Vercel sin DB):
+        // operamos en modo solo-lectura leyendo la semilla.
+        this.readOnly = true;
+      }
     }
   }
 
-  /** Lee y parsea el archivo local; devuelve la lista de centros. */
+  /**
+   * Lee y parsea los centros. En modo normal usa el archivo local mutable;
+   * en modo solo-lectura usa directamente la semilla versionada.
+   */
   private async readAll(): Promise<Center[]> {
-    const raw = await fs.readFile(this.localPath, "utf-8");
+    const raw = await fs.readFile(
+      this.readOnly ? this.seedPath : this.localPath,
+      "utf-8",
+    );
     return JSON.parse(raw) as Center[];
   }
 
@@ -70,6 +90,13 @@ export class JsonStore implements CenterRepository {
   }
 
   async create(input: CenterInput, meta?: CreateMeta): Promise<Center> {
+    if (this.readOnly) {
+      throw new Error(
+        "READ_ONLY_STORE: el almacenamiento es de solo lectura en este entorno. " +
+          "Configura DATABASE_URL o POSTGRES_URL (Postgres/Neon) para habilitar el registro de centros.",
+      );
+    }
+
     const centers = await this.readAll();
 
     // Generamos un id único: slug del nombre + sufijo aleatorio

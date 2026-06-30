@@ -59,6 +59,20 @@ export async function POST(req: Request) {
     return Response.json(center, { status: 201 });
   } catch (err) {
     console.error("[POST /api/centers]", err);
+
+    // Almacenamiento de solo lectura (deploy sin base de datos configurada):
+    // respondemos 503 con un mensaje accionable en lugar de un 500 genérico.
+    if (err instanceof Error && err.message.startsWith("READ_ONLY_STORE")) {
+      return Response.json(
+        {
+          error:
+            "El registro de centros no está disponible: este despliegue no tiene base de datos configurada. " +
+            "Configura una base Postgres (DATABASE_URL) para habilitar los reportes.",
+        } satisfies ApiError,
+        { status: 503 },
+      );
+    }
+
     return Response.json(
       { error: "Error interno al crear el centro." } satisfies ApiError,
       { status: 500 },
