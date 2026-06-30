@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listAllCenters } from "@/lib/centers-source";
+import { MATERIAL_CATEGORIES } from "@/lib/constants";
+import type { MaterialCategory } from "@/lib/types";
 import Header from "@/components/Header";
 import HomeView from "@/components/HomeView";
 import EmptyState from "@/components/EmptyState";
@@ -21,8 +23,23 @@ export const metadata: Metadata = {
     "Explora el mapa de centros de acopio en Medellín y Colombia para donar ayuda humanitaria a Venezuela. Ordena por cercanía y filtra por material.",
 };
 
-export default async function MapaPage() {
+export default async function MapaPage({
+  searchParams,
+}: {
+  // En Next 16 `searchParams` es asíncrono: hay que await-earlo antes de leerlo.
+  searchParams: Promise<{ material?: string | string[] }>;
+}) {
   const centers = await listAllCenters();
+
+  // Deep-link de material (p. ej. /mapa?material=mascotas). Tomamos el primer
+  // valor si vinieran varios y solo lo aceptamos si es una categoría válida.
+  const sp = await searchParams;
+  const rawMaterial = Array.isArray(sp.material) ? sp.material[0] : sp.material;
+  const initialMaterial = MATERIAL_CATEGORIES.includes(
+    rawMaterial as MaterialCategory,
+  )
+    ? (rawMaterial as MaterialCategory)
+    : undefined;
 
   return (
     <>
@@ -48,7 +65,7 @@ export default async function MapaPage() {
         </main>
       ) : (
         <main className="flex flex-1 flex-col">
-          <HomeView centers={centers} />
+          <HomeView centers={centers} initialMaterial={initialMaterial} />
         </main>
       )}
     </>

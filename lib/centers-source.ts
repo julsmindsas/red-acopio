@@ -31,15 +31,34 @@ export async function listAllCenters(): Promise<Center[]> {
       .catch(() => [] as Center[]),
   ]);
 
-  // Conserva los locales que NO tengan un oficial muy cercano.
-  const localUnique = local.filter(
-    (l) =>
-      !official.some(
-        (o) => haversineKm({ lat: l.lat, lng: l.lng }, { lat: o.lat, lng: o.lng }) <= DEDUP_RADIUS_KM,
-      ),
-  );
+  // Copia editable de los oficiales para poder enriquecerlos.
+  const officialEnriched = official.map((o) => ({
+    ...o,
+    materials: [...o.materials],
+  }));
 
-  return [...official, ...localUnique];
+  // Para cada centro local: si coincide con un oficial cercano (mismo punto),
+  // NO lo descartamos del todo — fusionamos sus materiales en el oficial (unión).
+  // Así no perdemos nuestro conocimiento local (p. ej. que también recibe para
+  // mascotas) y evitamos pines duplicados. Los locales sin equivalente oficial
+  // se conservan tal cual.
+  const localUnique: Center[] = [];
+  for (const l of local) {
+    const match = officialEnriched.find(
+      (o) =>
+        haversineKm({ lat: l.lat, lng: l.lng }, { lat: o.lat, lng: o.lng }) <=
+        DEDUP_RADIUS_KM,
+    );
+    if (match) {
+      for (const m of l.materials) {
+        if (!match.materials.includes(m)) match.materials.push(m);
+      }
+    } else {
+      localUnique.push(l);
+    }
+  }
+
+  return [...officialEnriched, ...localUnique];
 }
 
 /** Solo los centros locales (para el panel admin, que únicamente edita los nuestros). */

@@ -11,8 +11,10 @@
 import type { Source } from "./types";
 import { elTiempoMedellin } from "./eltiempo-medellin";
 import { pulzoColombia } from "./pulzo-colombia";
+import { laikaMascotas } from "./laika-mascotas";
 
 export const sources: Source[] = [
   elTiempoMedellin, // 8 centros (Medellín, Itagüí, Bello, Envigado) — prensa, sin_verificar
   pulzoColombia, //    1 centro (El Minuto de Dios, Medellín) — prensa, sin_verificar
+  laikaMascotas, //    3 centros (mascotas, campaña "Patitas por Venezuela", Medellín/Rionegro) — prensa, sin_verificar
 ];

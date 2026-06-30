@@ -41,7 +41,17 @@ function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
   return next;
 }
 
-export default function HomeView({ centers }: { centers: Center[] }) {
+export default function HomeView({
+  centers,
+  initialMaterial,
+}: {
+  centers: Center[];
+  /**
+   * Material con el que precargar el filtro (deep-link, p. ej.
+   * /mapa?material=mascotas). Si se omite, el filtro arranca vacío.
+   */
+  initialMaterial?: MaterialCategory;
+}) {
   // --- Geolocalización -----------------------------------------------------
   const [userLoc, setUserLoc] = useState<LatLng | null>(null);
   const [geoState, setGeoState] = useState<GeoState>("idle");
@@ -69,8 +79,10 @@ export default function HomeView({ centers }: { centers: Center[] }) {
   // --- Filtros (extensibles) ----------------------------------------------
   // Cada filtro es un Set independiente. Set vacío = sin filtrar por ese criterio.
   // Para añadir un filtro nuevo, agrega aquí su estado y aplícalo en `filtered`.
+  // Inicializador perezoso: si llega un material por deep-link, el filtro
+  // arranca con ese material preseleccionado; si no, vacío (sin filtrar).
   const [materialFilter, setMaterialFilter] = useState<Set<MaterialCategory>>(
-    new Set(),
+    () => (initialMaterial ? new Set([initialMaterial]) : new Set()),
   );
   const [statusFilter, setStatusFilter] = useState<Set<VerificationStatus>>(
     new Set(),

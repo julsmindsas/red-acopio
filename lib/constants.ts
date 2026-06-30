@@ -24,6 +24,7 @@ export const MATERIAL_LABELS: Record<MaterialCategory, string> = {
   bebes: "Insumos para bebés",
   cobijas: "Cobijas / abrigo",
   herramientas: "Herramientas",
+  mascotas: "Alimento y cuidado de mascotas",
   otros: "Otros",
 };
 
@@ -37,6 +38,7 @@ export const MATERIAL_EMOJI: Record<MaterialCategory, string> = {
   bebes: "🍼",
   cobijas: "🛏️",
   herramientas: "🔧",
+  mascotas: "🐾",
   otros: "📦",
 };
 

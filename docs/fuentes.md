@@ -141,6 +141,93 @@ tanto, los 9 centros quedan en **`sin_verificar`** y la UI debe mostrar el aviso
 
 ---
 
+## Puntos para mascotas/animales
+
+> Esta sección documenta la investigación específica de **puntos donde donar
+> insumos para mascotas y animales** afectados por los terremotos de Venezuela
+> (junio de 2026). Los resultados se guardan en
+> `data/scraped/curados-mascotas.json`.
+>
+> **Fecha de consulta:** 2026-06-30.
+> **Herramientas usadas:** WebSearch + WebFetch + Nominatim (OSM).
+
+### Qué se buscó
+
+Términos de búsqueda utilizados:
+
+- `"Laika tienda mascotas centro de acopio Venezuela Medellín 2026"`
+- `"Una garra por Venezuela" Laika Medellin punto acopio dirección mascotas junio 2026`
+- `"Laika 'Patitas por Venezuela' tienda Medellín dirección horario 2026"`
+- `"fundación animalista Medellín acopio mascotas Venezuela terremoto 2026 donaciones"`
+
+### Fuentes consultadas
+
+| Fuente | URL | Hallazgo |
+|--------|-----|----------|
+| **Pulzo** (primaria) | [pulzo.com/.../PP5230073](https://www.pulzo.com/mundo/laika-habilito-puntos-acopio-para-ayudar-mascotas-terremoto-venezuela-PP5230073) | Campaña "Patitas por Venezuela" de Laika; menciona Arkadia (Cra 70 #1-141 local 9822) y El Poblado (Cl. 2 Sur #32-54) como puntos en Medellín. |
+| **Infobae** (confirmación) | [infobae.com/.../colombia/2026/06/27](https://www.infobae.com/colombia/2026/06/27/asi-puede-ayudar-a-los-animales-afectados-por-el-terremoto-en-venezuela-bogota-abrio-puntos-de-donacion/) | Confirma los tres puntos Laika en Medellín: Arkadia, El Poblado y Llanogrande (Km 7 vía Llanogrande, Rionegro). |
+| **El Tiempo** (contenido comercial) | [eltiempo.com/.../3534207](https://www.eltiempo.com/contenido-comercial/laika-entregara-4-toneladas-de-alimento-y-activa-centros-de-acopio-en-medellin-y-barranquilla-3534207) | Artículo sobre emergencia de Córdoba (feb 2026), no Venezuela, pero confirma las mismas tres direcciones Laika en Medellín. Se usa solo como verificación de dirección, no como fuente principal. |
+| **El Tiempo** (Medellín, ya en fuentes) | [eltiempo.com/.../3567045](https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045) | Menciona Grupo Mega (Itagüí y Bello) con "alimento para mascotas" entre los materiales. Ya cubierto en `curados.json`; aquí se reclasifica con la categoría correcta `mascotas`. |
+| **Nación Paisa** | [nacionpaisa.com/.../una-garra-por-venezuela](https://www.nacionpaisa.com/una-garra-por-venezuela-abre-acopio-en-laika-para-enviar-seis-toneladas-de-ayuda/) | Campaña "Una Garra por Venezuela" (Fundación Ruta Animal + Laika + Misión Kiara + Avianca). Los 7 puntos de acopio son **todos en Bogotá** (no Medellín). Se descarta para este dataset. |
+| **RCN Radio** | [newsroom.rcnradio.com/.../donaciones-para-animales](https://newsroom.rcnradio.com/colombia/donaciones-para-animales-afectados-por-el-terremoto-en-venezuela-asi-puedes-ayudar-a-las-mascotas-damnificadas) | Repite los puntos de Bogotá y Cundinamarca de "Una Garra por Venezuela". Sin direcciones de Medellín. Descartado. |
+| **Minuto60** | [minuto60.com/.../11175](https://www.minuto60.com/colombia/una-garra-venezuela-iniciativa-que-busca-ayudar-animales/11175) | Describe "Una Garra por Venezuela" con 7 puntos Laika, todos en Bogotá. Sin Medellín. Descartado. |
+| **Semana** (mapa) | semana.com/.../202616 | Cita puntos en Bogotá/Medellín/Cali/Pereira sin direcciones específicas. No usable. |
+| **Pulzo** (general) | [pulzo.com/.../PP5230536](https://www.pulzo.com/mundo/como-ayudar-venezuela-puntos-acopio-donaciones-campanas-desde-colombia-PP5230536) | Menciona "Patitas por Venezuela" en Medellín pero **sin direcciones concretas** (ya cubiertas por la fuente primaria). |
+
+### Puntos encontrados
+
+Se encontraron **5 puntos reales** que explícitamente aceptan insumos para mascotas en el Área Metropolitana de Medellín / Oriente Antioqueño:
+
+| # | Nombre | Municipio | Dirección | Fuente | Geocodificación |
+|---|--------|-----------|-----------|--------|-----------------|
+| 1 | Laika Mascotas — Arkadia | Medellín | Cra 70 #1-141, local 9822 | Pulzo PP5230073 | POI exacto del C.C. Arkadia |
+| 2 | Laika Mascotas — El Poblado | Medellín | Cl. 2 Sur #32-54 | Pulzo PP5230073 | Nivel de calle |
+| 3 | Laika Mascotas — Llanogrande | Rionegro | Vía Llanogrande-Ríogrande, Km 7 | Infobae 27-jun-2026 | **APROXIMADA** al corregimiento Llanogrande |
+| 4 | Grupo Mega — Mall Itagüí | Itagüí | Mall Itagüí, local 146 | El Tiempo 3567045 | POI del Mall Itagüí |
+| 5 | Grupo Mega — Bello | Bello | Cra 50 #50-15, Parque de Bello | El Tiempo 3567045 | Nivel de calle |
+
+**Importante sobre el punto 3 (Llanogrande):** Nominatim no pudo geocodificar
+"Km 7 vía Llanogrande" de forma precisa. Se usó el centroide del corregimiento
+de Llanogrande (Rionegro) como aproximación; el km exacto no está en OSM.
+Confirmar la ubicación de entrada antes de acudir.
+
+**Sobre los puntos 4 y 5:** ya existen en `curados.json` con categoría `otros`
+para mascotas. En `curados-mascotas.json` se reclasifican con la categoría
+correcta `mascotas` y se añade el campo `city` explícito.
+
+### Organizaciones de mascotas adicionales consultadas
+
+- **Fundación Ruta Animal** (fundacionrutanimal.org): su campaña "Una Garra por
+  Venezuela" operó en Bogotá/Cundinamarca, no en Medellín. No se encontró
+  punto físico de esta organización en el Área Metropolitana.
+- **Misión Kiara**: participa en "Una Garra por Venezuela" con puntos solo en
+  Bogotá.
+- **Fundación GORA** (aliada de Laika en el despacho de alimentos): no se
+  encontró un punto físico de acopio propio en Medellín.
+- **Instituto de Protección Animal** (Bogotá): organismo distrital de Bogotá,
+  sin sede en Medellín.
+- **Fundaciones animalistas de Medellín / Antioquia en general**: no se
+  encontró ninguna fundación animalista de Medellín o Antioquia que haya
+  publicado un punto de acopio físico con dirección para la emergencia Venezuela
+  2026 durante la búsqueda del 2026-06-30. Si existe, no está indexada en
+  medios masivos.
+
+### Limitaciones y advertencias
+
+1. **Vigencia temporal:** la campaña "Patitas por Venezuela" de Laika tenía
+   una ventana publicada del 25 al 30 de junio de 2026. A partir del 30 de
+   junio, verificar con Laika si los puntos siguen activos.
+2. **Sin teléfono:** ninguna fuente publicó un número de teléfono de contacto
+   para estos puntos.
+3. **Sin horario exacto:** las fuentes solo indican el rango de fechas, no el
+   horario de apertura/cierre de cada tienda.
+4. **Geocodificación:** Laika Llanogrande es APROXIMADA (centroide del
+   corregimiento). Los puntos de Grupo Mega son de nivel calle/POI.
+5. **Real vs. verificado:** todos los centros provienen de medios de prensa,
+   no de Laika directamente ni de un organismo oficial. Quedan `sin_verificar`.
+
+---
+
 ## 6. Cómo correr / actualizar
 
 ```bash

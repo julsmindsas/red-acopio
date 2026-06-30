@@ -26,6 +26,9 @@ const ACCEPTS_MAP: Record<string, MaterialCategory> = {
   shelter: "cobijas",
   baby: "bebes",
   tools: "herramientas",
+  pets: "mascotas",
+  pet_food: "mascotas",
+  animals: "mascotas",
 };
 
 /** Forma (parcial) de un acopio según la API oficial. */

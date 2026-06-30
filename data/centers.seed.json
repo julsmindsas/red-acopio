@@ -32,6 +32,7 @@
       "medicamentos",
       "aseo",
       "bebes",
+      "mascotas",
       "otros"
     ],
     "schedule": "Horario no publicado",
@@ -55,6 +56,7 @@
       "medicamentos",
       "aseo",
       "bebes",
+      "mascotas",
       "otros"
     ],
     "schedule": "Horario no publicado",
@@ -189,5 +191,74 @@
     "status": "sin_verificar",
     "createdAt": "2026-06-29T00:00:00.000Z",
     "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "laika-arkadia-medellin",
+    "name": "Laika Mascotas — Arkadia",
+    "address": "Carrera 70 #1-141, local 9822, Medellín",
+    "phone": null,
+    "materials": [
+      "mascotas",
+      "alimentos",
+      "agua",
+      "medicamentos",
+      "aseo"
+    ],
+    "schedule": "25 al 30 de junio de 2026 (horario de tienda; no publicado explícitamente)",
+    "lat": 6.2123737,
+    "lng": -75.594709,
+    "city": "Medellín",
+    "country": "Colombia",
+    "notes": "Punto de la campaña 'Patitas por Venezuela' de Laika Mascotas, lanzada tras los terremotos de junio de 2026. Acepta: alimento seco y húmedo para perros y gatos, agua, medicamentos veterinarios, productos de aseo, alimentos no perecederos para personas. Fuente secundaria de confirmación: Infobae, 27-jun-2026. Geocodificación: POI 'Centro Comercial Arkadia' vía Nominatim/OSM, 2026-06-30 (nivel de punto exacto del centro comercial; la tienda Laika está en el local 9822).",
+    "source": "https://www.pulzo.com/mundo/laika-habilito-puntos-acopio-para-ayudar-mascotas-terremoto-venezuela-PP5230073",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "updatedAt": "2026-06-30T00:00:00.000Z"
+  },
+  {
+    "id": "laika-el-poblado-medellin",
+    "name": "Laika Mascotas — El Poblado",
+    "address": "Calle 2 Sur #32-54, El Poblado, Medellín",
+    "phone": null,
+    "materials": [
+      "mascotas",
+      "alimentos",
+      "agua",
+      "medicamentos",
+      "aseo"
+    ],
+    "schedule": "25 al 30 de junio de 2026 (horario de tienda; no publicado explícitamente)",
+    "lat": 6.2036023,
+    "lng": -75.5763037,
+    "city": "Medellín",
+    "country": "Colombia",
+    "notes": "Punto de la campaña 'Patitas por Venezuela' de Laika Mascotas. Acepta: alimento seco y húmedo para perros y gatos, agua, medicamentos veterinarios, productos de aseo, alimentos no perecederos para personas. Confirmado por Infobae (27-jun-2026) e Infobae (27-jun-2026). Geocodificación: nivel de calle ('Calle 2 Sur #32-54') vía Nominatim/OSM, 2026-06-30.",
+    "source": "https://www.pulzo.com/mundo/laika-habilito-puntos-acopio-para-ayudar-mascotas-terremoto-venezuela-PP5230073",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "updatedAt": "2026-06-30T00:00:00.000Z"
+  },
+  {
+    "id": "laika-llanogrande-rionegro",
+    "name": "Laika Mascotas — Llanogrande",
+    "address": "Vía Llanogrande - Ríogrande, Km 7, Rionegro, Antioquia",
+    "phone": null,
+    "materials": [
+      "mascotas",
+      "alimentos",
+      "agua",
+      "medicamentos",
+      "aseo"
+    ],
+    "schedule": "25 al 30 de junio de 2026 (horario de tienda; no publicado explícitamente)",
+    "lat": 6.1265341,
+    "lng": -75.4175196,
+    "city": "Rionegro",
+    "country": "Colombia",
+    "notes": "Punto de la campaña 'Patitas por Venezuela' de Laika Mascotas. Acepta: alimento seco y húmedo para perros y gatos, agua, medicamentos veterinarios, productos de aseo, alimentos no perecederos para personas. Municipio: Rionegro (Oriente Antioqueño), no Medellín propiamente, aunque la fuente lo agrupa en las sedes de 'Medellín'. Geocodificación: APROXIMADA al corregimiento de Llanogrande, Rionegro, vía Nominatim/OSM, 2026-06-30 (no al número exacto de km; confirmar dirección de entrada antes de ir).",
+    "source": "https://www.pulzo.com/mundo/laika-habilito-puntos-acopio-para-ayudar-mascotas-terremoto-venezuela-PP5230073",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "updatedAt": "2026-06-30T00:00:00.000Z"
   }
 ]

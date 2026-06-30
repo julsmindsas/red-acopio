@@ -20,6 +20,7 @@ export const MATERIAL_CATEGORIES = [
   "bebes",
   "cobijas",
   "herramientas",
+  "mascotas",
   "otros",
 ] as const;
 
