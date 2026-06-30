@@ -1,0 +1,193 @@
+[
+  {
+    "id": "institucion-educativa-hector-abad-gomez-placita-de-flores",
+    "name": "Institución Educativa Héctor Abad Gómez (Placita de Flores)",
+    "address": "Calle 50 #39-65, Placita de Flores (barrio Boston), Medellín",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "ropa",
+      "medicamentos",
+      "cobijas"
+    ],
+    "schedule": "Todos los días 8:00 a.m. - 5:00 p.m. (desde el 26 de junio de 2026)",
+    "lat": 6.2438336,
+    "lng": -75.5569037,
+    "notes": "El Tiempo lo describe como el punto de acopio dispuesto en Medellín. Nota: El Colombiano (26-jun-2026) advirtió que para ese momento ningún organismo oficial había anunciado recepción de ayudas físicas; confirmar vigencia antes de acudir. Geocodificación a nivel de calle vía Nominatim/OSM, 2026-06-29 (no a número de puerta exacto).",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "grupo-mega-itagui",
+    "name": "Grupo Mega - Itagüí",
+    "address": "Mall Itagüí, local 146, Itagüí",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "ropa",
+      "medicamentos",
+      "aseo",
+      "bebes",
+      "otros"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.1729848,
+    "lng": -75.6101592,
+    "notes": "Centro de acopio dispuesto por Grupo Mega. También recibe alimento para mascotas (categoría 'otros'). Geocodificación: punto exacto (POI) vía Nominatim/OSM, 2026-06-29.",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "grupo-mega-bello",
+    "name": "Grupo Mega - Bello",
+    "address": "Carrera 50 #50-15, sector Parque de Bello, Bello",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "ropa",
+      "medicamentos",
+      "aseo",
+      "bebes",
+      "otros"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.3393087,
+    "lng": -75.5590546,
+    "notes": "Centro de acopio dispuesto por Grupo Mega. También recibe alimento para mascotas (categoría 'otros'). Geocodificación a nivel de calle vía Nominatim/OSM, 2026-06-29 (no a número de puerta exacto).",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "restaurante-tepuy-laureles",
+    "name": "Restaurante Tepuy - Laureles",
+    "address": "Carrera 73C #3-5, Laureles, Medellín",
+    "phone": null,
+    "materials": [
+      "medicamentos",
+      "otros"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.2381205,
+    "lng": -75.6002269,
+    "notes": "Punto de recolección del restaurante venezolano Tepuy; enfocado en insumos médicos y de primeros auxilios. Ubicación APROXIMADA vía Nominatim/OSM, 2026-06-29: no se ubicó la dirección exacta; punto aproximado dentro del barrio.",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "restaurante-tepuy-envigado",
+    "name": "Restaurante Tepuy - Envigado",
+    "address": "Transversal 32A Sur #31E-20, Envigado",
+    "phone": null,
+    "materials": [
+      "medicamentos",
+      "otros"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.1761388,
+    "lng": -75.5807896,
+    "notes": "Punto de recolección del restaurante venezolano Tepuy; enfocado en insumos médicos y de primeros auxilios. Geocodificación a nivel de calle vía Nominatim/OSM, 2026-06-29 (no a número de puerta exacto).",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "semper-cafe-belen",
+    "name": "Semper Café - Belén",
+    "address": "Barrio Belén, Medellín (dirección exacta no publicada)",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "medicamentos",
+      "aseo",
+      "cobijas"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.2258758,
+    "lng": -75.6004937,
+    "notes": "La fuente no publicó dirección exacta; coordenadas aproximadas al centroide del barrio Belén. Confirmar ubicación con el establecimiento antes de acudir. Ubicación APROXIMADA (centroide del barrio) vía Nominatim/OSM, 2026-06-29: la fuente no publicó dirección exacta.",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "simon-coffee-el-poblado",
+    "name": "Simón Coffee - El Poblado",
+    "address": "Barrio El Poblado, Medellín (dirección exacta no publicada)",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "medicamentos",
+      "aseo",
+      "cobijas"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.2006197,
+    "lng": -75.5636832,
+    "notes": "La fuente no publicó dirección exacta; coordenadas aproximadas al centroide de El Poblado. Confirmar ubicación con el establecimiento antes de acudir. Ubicación APROXIMADA (centroide del barrio) vía Nominatim/OSM, 2026-06-29: la fuente no publicó dirección exacta.",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "calante-bar-el-poblado",
+    "name": "Calante Bar - El Poblado",
+    "address": "Barrio El Poblado, Medellín (dirección exacta no publicada)",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "medicamentos",
+      "aseo",
+      "cobijas"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.2006197,
+    "lng": -75.5636832,
+    "notes": "La fuente no publicó dirección exacta; coordenadas aproximadas al centroide de El Poblado. Confirmar ubicación con el establecimiento antes de acudir. Ubicación APROXIMADA (centroide del barrio) vía Nominatim/OSM, 2026-06-29: la fuente no publicó dirección exacta.",
+    "source": "https://www.eltiempo.com/colombia/medellin/asi-puede-apoyar-a-las-personas-afectadas-por-los-terremotos-en-venezuela-desde-medellin-donaciones-centros-de-acopio-y-busqueda-de-desaparecidos-3567045",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  },
+  {
+    "id": "corporacion-el-minuto-de-dios-medellin",
+    "name": "Corporación El Minuto de Dios - Medellín",
+    "address": "Carrera 49 #53-19, Oficina 403, Edificio Bancoquia, Medellín",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "ropa",
+      "medicamentos",
+      "aseo",
+      "bebes",
+      "cobijas",
+      "herramientas",
+      "otros"
+    ],
+    "schedule": "Horario no publicado",
+    "lat": 6.2460328,
+    "lng": -75.5687495,
+    "notes": "Punto de la Corporación El Minuto de Dios (campaña 'Un Minuto por los panas'). Oficina 403, Edificio Bancoquia. Geocodificación a nivel de calle vía Nominatim/OSM, 2026-06-29 (no a número de puerta exacto).",
+    "source": "https://www.pulzo.com/mundo/como-ayudar-venezuela-puntos-acopio-donaciones-campanas-desde-colombia-PP5230536",
+    "status": "sin_verificar",
+    "createdAt": "2026-06-29T00:00:00.000Z",
+    "updatedAt": "2026-06-29T00:00:00.000Z"
+  }
+]

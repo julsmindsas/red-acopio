@@ -32,6 +32,13 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# Red de Acopio
+# Store JSON local mutable (desarrollo). La semilla versionada es data/centers.seed.json
+data/centers.local.json
+# Salida cruda del scraper (datos sin curar). Lo curado se integra a la semilla.
+/data/scraped/
 
 # vercel
 .vercel

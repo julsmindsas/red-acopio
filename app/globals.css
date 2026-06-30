@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
+/*
+ * Sistema de diseño — Red de Acopio
+ * --------------------------------------------------------------------------
+ * App humanitaria: la paleta busca transmitir confianza y calma sin alarmar.
+ *   - brand   -> verde esmeralda (ayuda, seguridad, "vía libre").
+ *   - accent  -> ámbar cálido (advertencias de verificación y llamadas a la acción).
+ * Mobile-first: todo el espaciado y tipografía se piensa primero para móvil.
+ *
+ * Tailwind v4 se configura aquí, en CSS. Cada token de `@theme` genera
+ * utilidades (ej. `--color-brand-600` -> `bg-brand-600`, `text-brand-600`...).
+ * Para añadir un color de marca nuevo, agrégalo dentro de `@theme`.
+ */
+
+@theme {
+  /* Verde esmeralda de marca */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --color-brand-950: #022c22;
+
+  /* Ámbar cálido de acento (advertencias / CTAs) */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+}
+
+/* Tokens de superficie (claro/oscuro). Se exponen como utilidades vía @theme inline. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f8f7;
+  --foreground: #0f1c17;
+  --surface: #ffffff;
+  --surface-muted: #eef2f0;
+  --border: #dbe4e0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0f0d;
+    --foreground: #e7efea;
+    --surface: #111a16;
+    --surface-muted: #16221d;
+    --border: #24332c;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Estilos base de la app */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  /* Halo cálido muy sutil en la parte superior para dar profundidad sin distraer */
+  background-image: radial-gradient(
+    115% 80% at 50% -10%,
+    color-mix(in srgb, var(--color-brand-500) 9%, transparent) 0%,
+    transparent 60%
+  );
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Accesibilidad: anillo de foco visible y consistente para navegación por teclado */
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selección de texto con el color de marca */
+::selection {
+  background-color: color-mix(in srgb, var(--color-brand-500) 28%, transparent);
+}
+
+/* Respeta a quien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
