@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import type L from 'leaflet';
-import type { MapViewProps } from '@/lib/types';
+import type { LatLng, MapViewProps } from '@/lib/types';
 import { MEDELLIN_CENTER, DEFAULT_ZOOM } from '@/lib/constants';
 import { createStatusIcon, USER_ICON } from './icons';
 
@@ -39,6 +39,29 @@ function MapController({
     map.setView(marker.getLatLng(), Math.max(map.getZoom(), 14), { animate: true });
     marker.openPopup();
   }, [selectedId, map, markerRefs]);
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Controlador interno: vuela a la ubicación del usuario cuando se obtiene.
+// Así, al pulsar "Usar mi ubicación", el mapa se acomoda a donde está la
+// persona (no se queda en Medellín).
+// ---------------------------------------------------------------------------
+function UserLocationController({
+  userLocation,
+}: {
+  userLocation: LatLng | null;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!userLocation) return;
+    // Vuela a la ubicación con un zoom de barrio (sin reducirlo si ya hay más).
+    map.flyTo([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 14), {
+      animate: true,
+    });
+  }, [userLocation, map]);
 
   return null;
 }
@@ -86,6 +109,9 @@ export default function LeafletMap({
 
       {/* Vuela al marcador seleccionado y abre su popup */}
       <MapController selectedId={selectedId} markerRefs={markerRefs} />
+
+      {/* Vuela a la ubicación del usuario cuando se obtiene */}
+      <UserLocationController userLocation={userLocation} />
 
       {/* Marcadores de centros de acopio */}
       {markers.map((m) => (

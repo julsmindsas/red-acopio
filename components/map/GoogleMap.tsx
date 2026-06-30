@@ -226,6 +226,12 @@ export default function GoogleMap({
     infoWindowRef.current?.open(mapRef.current, gm);
   }, [mapReady, selectedId, markers]);
 
+  // Acomoda el mapa a la ubicación del usuario cuando se obtiene.
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !userLocation) return;
+    mapRef.current.panTo({ lat: userLocation.lat, lng: userLocation.lng });
+  }, [mapReady, userLocation]);
+
   if (error) {
     return (
       <div
