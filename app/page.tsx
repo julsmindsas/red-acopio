@@ -1,4 +1,4 @@
-import { getRepository } from "@/lib/db";
+import { listAllCenters } from "@/lib/centers-source";
 import Header from "@/components/Header";
 import HomeView from "@/components/HomeView";
 import EmptyState from "@/components/EmptyState";
@@ -6,12 +6,13 @@ import Link from "next/link";
 
 /*
  * Página de inicio (Server Component).
- * Carga los centros en el servidor desde el repositorio de datos y los entrega
+ * Carga los centros en el servidor desde la FUENTE HÍBRIDA (centros oficiales
+ * de acopiove.org + nuestros centros locales, ya deduplicados) y los entrega
  * a <HomeView> (cliente) para la interacción (mapa, filtros, geolocalización).
  */
 
 export default async function Home() {
-  const centers = await getRepository().list();
+  const centers = await listAllCenters();
 
   return (
     <>
@@ -30,7 +31,7 @@ export default async function Home() {
                 className="inline-flex h-11 items-center gap-1.5 rounded-full bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition-colors hover:bg-brand-700"
               >
                 <span aria-hidden="true">＋</span>
-                Reportar un centro
+                Recomendar un centro de acopio
               </Link>
             }
           />

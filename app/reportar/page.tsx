@@ -4,14 +4,14 @@ import Header from "@/components/Header";
 import ReportForm from "@/components/ReportForm";
 
 /*
- * Página /reportar — formulario ciudadano para mapear un centro de acopio nuevo.
- * Incluye una nota de responsabilidad: solo deben reportarse centros reales.
+ * Página /reportar — formulario ciudadano para recomendar un centro de acopio nuevo.
+ * Incluye una nota de responsabilidad: solo deben recomendarse centros reales.
  */
 
 export const metadata: Metadata = {
-  title: "Reportar un centro — Red de Acopio",
+  title: "Recomendar un centro — Red de Acopio",
   description:
-    "Reporta un centro de acopio real y activo en Medellín para que más personas puedan donar ayuda humanitaria.",
+    "Recomienda un centro de acopio real y activo en Medellín para que más personas puedan donar ayuda humanitaria.",
 };
 
 export default function ReportarPage() {
@@ -30,11 +30,11 @@ export default function ReportarPage() {
             Volver al mapa
           </Link>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
-            Reportar un centro de acopio
+            Recomendar un centro de acopio
           </h1>
           <p className="mt-1 text-sm text-foreground/70">
-            Ayuda a que la comunidad encuentre dónde donar. Tu reporte quedará
-            pendiente de revisión antes de publicarse.
+            Ayuda a que la comunidad encuentre dónde donar. Tu recomendación
+            quedará pendiente de revisión antes de publicarse.
           </p>
         </div>
 
@@ -45,11 +45,11 @@ export default function ReportarPage() {
           </span>
           <p className="leading-relaxed">
             <strong className="font-semibold">
-              Reporta solo centros reales que conozcas.
+              Recomienda solo centros reales que conozcas.
             </strong>{" "}
             La información errónea desperdicia el esfuerzo de quienes donan y de
             quienes coordinan la ayuda. Si tienes dudas, confirma con el centro
-            antes de reportarlo.
+            antes de recomendarlo.
           </p>
         </div>
 

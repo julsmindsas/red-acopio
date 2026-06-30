@@ -2,11 +2,11 @@ import Link from "next/link";
 
 /*
  * Encabezado de la app.
- * - Sticky para que la identidad y el acceso a "Reportar" estén siempre a mano.
+ * - Sticky para que la identidad y el acceso a "Recomendar" estén siempre a mano.
  * - Identidad: marca cálida con icono. Touch target amplio en el enlace de acción.
  *
- * `variant="report"` ajusta el CTA: en la página de reporte el enlace lleva de
- * vuelta al mapa en lugar de repetir "Reportar".
+ * `variant="report"` ajusta el CTA: en la página de recomendación el enlace
+ * lleva de vuelta al mapa en lugar de repetir "Recomendar".
  */
 
 export default function Header({
@@ -52,8 +52,8 @@ export default function Header({
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition-colors hover:bg-brand-700"
           >
             <span aria-hidden="true">＋</span>
-            <span className="hidden sm:inline">Reportar un centro</span>
-            <span className="sm:hidden">Reportar</span>
+            <span className="hidden sm:inline">Recomendar un centro</span>
+            <span className="sm:hidden">Recomendar</span>
           </Link>
         )}
       </div>

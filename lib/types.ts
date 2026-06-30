@@ -55,15 +55,43 @@ export interface Center {
   schedule: string;
   lat: number;
   lng: number;
+  /** Ciudad/municipio (ej. "Medellín", "Itagüí"). Opcional. */
+  city?: string | null;
+  /** País (ej. "Colombia"). Opcional; por defecto Colombia en datos locales. */
+  country?: string | null;
   /** Notas o aclaraciones adicionales. */
   notes: string | null;
-  /** Origen del dato: URL de la fuente, "reporte-ciudadano", etc. `null` si se desconoce. */
+  /** Origen del dato: URL de la fuente, "reporte-ciudadano", "acopiove.org", etc. `null` si se desconoce. */
   source: string | null;
   status: VerificationStatus;
+  /**
+   * `true` si el centro proviene de una fuente externa de solo lectura (p. ej. la
+   * API oficial de acopiove.org) y por tanto NO es editable desde el panel admin.
+   * Los centros locales (reportes/curados) son editables.
+   */
+  readOnly?: boolean;
   /** Fecha de creación en formato ISO 8601. */
   createdAt: string;
   /** Fecha de última actualización en formato ISO 8601. */
   updatedAt: string;
+}
+
+/**
+ * Campos editables de un centro desde el panel administrativo.
+ * Todos opcionales: solo se actualiza lo que venga presente.
+ */
+export interface CenterPatch {
+  name?: string;
+  address?: string;
+  phone?: string | null;
+  materials?: MaterialCategory[];
+  schedule?: string;
+  lat?: number;
+  lng?: number;
+  city?: string | null;
+  country?: string | null;
+  notes?: string | null;
+  status?: VerificationStatus;
 }
 
 /**

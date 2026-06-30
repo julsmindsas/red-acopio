@@ -12,7 +12,7 @@ import { centerInputSchema, formatZodErrors } from "@/lib/validation";
 import type { ApiError, MaterialCategory } from "@/lib/types";
 
 /*
- * Formulario para reportar un nuevo centro de acopio.
+ * Formulario para recomendar un nuevo centro de acopio.
  * ------------------------------------------------------------------------
  * - Validación en cliente con `centerInputSchema.safeParse` (mismo esquema que
  *   usa la API en el servidor), mostrando errores por campo.
@@ -163,7 +163,7 @@ export default function ReportForm() {
       }
 
       setFormError(
-        "No pudimos enviar tu reporte en este momento. Inténtalo más tarde.",
+        "No pudimos enviar tu recomendación en este momento. Inténtalo más tarde.",
       );
     } catch {
       setFormError(
@@ -182,10 +182,10 @@ export default function ReportForm() {
           🙌
         </span>
         <h2 className="mt-2 text-xl font-bold text-brand-900">
-          ¡Gracias por tu aporte!
+          ¡Gracias por tu recomendación!
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-brand-800">
-          Recibimos el centro que reportaste. Quedará{" "}
+          Recibimos el centro que recomendaste. Quedará{" "}
           <strong>pendiente de revisión</strong> y, una vez verificado,
           aparecerá en el mapa para que más personas puedan donar.
         </p>
@@ -195,7 +195,7 @@ export default function ReportForm() {
             onClick={() => setSuccess(false)}
             className="inline-flex h-11 items-center justify-center rounded-full border border-brand-600 bg-surface px-5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100"
           >
-            Reportar otro centro
+            Recomendar otro centro
           </button>
           <Link
             href="/"
@@ -402,7 +402,7 @@ export default function ReportForm() {
         {coords && (
           <div className="mt-3">
             <p className="mb-1.5 text-xs text-foreground/60">
-              Vista previa del punto reportado:
+              Vista previa del punto recomendado:
             </p>
             <div className="h-48 overflow-hidden rounded-xl border border-border">
               <MapView
@@ -411,7 +411,7 @@ export default function ReportForm() {
                     id: "nuevo",
                     lat: coords.lat,
                     lng: coords.lng,
-                    title: name.trim() || "Centro reportado",
+                    title: name.trim() || "Centro recomendado",
                     status: "reportado",
                   },
                 ]}
@@ -461,7 +461,7 @@ export default function ReportForm() {
         ) : (
           <>
             <span aria-hidden="true">📨</span>
-            Enviar reporte
+            Enviar recomendación
           </>
         )}
       </button>

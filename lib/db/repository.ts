@@ -11,7 +11,12 @@
  * Para añadir otro backend (Firestore, Supabase, MongoDB...), basta con
  * implementar `CenterRepository` y registrarlo en `lib/db/index.ts`.
  */
-import type { Center, CenterInput, VerificationStatus } from "../types";
+import type {
+  Center,
+  CenterInput,
+  CenterPatch,
+  VerificationStatus,
+} from "../types";
 
 /** Metadatos que el servidor adjunta al crear un centro. */
 export interface CreateMeta {
@@ -33,4 +38,13 @@ export interface CenterRepository {
 
   /** Crea un centro a partir de la entrada validada del usuario. */
   create(input: CenterInput, meta?: CreateMeta): Promise<Center>;
+
+  /**
+   * Actualiza parcialmente un centro (panel admin). Devuelve el centro
+   * actualizado, o `null` si no existe. Refresca `updatedAt`.
+   */
+  update(id: string, patch: CenterPatch): Promise<Center | null>;
+
+  /** Elimina un centro (panel admin). Devuelve `true` si existía y se borró. */
+  remove(id: string): Promise<boolean>;
 }

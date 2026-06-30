@@ -9,7 +9,7 @@
  */
 import { neon } from "@neondatabase/serverless";
 
-import type { Center, CenterInput, MaterialCategory } from "../types";
+import type { Center, CenterInput, CenterPatch, MaterialCategory } from "../types";
 import type { CenterRepository, CreateMeta } from "./repository";
 
 /** Fila tal como la retorna Postgres (snake_case). */
@@ -22,6 +22,8 @@ interface CenterRow {
   schedule: string;
   lat: number;
   lng: number;
+  city: string | null;
+  country: string | null;
   notes: string | null;
   source: string | null;
   status: string;
@@ -40,6 +42,8 @@ function rowToCenter(row: CenterRow): Center {
     schedule: row.schedule,
     lat: Number(row.lat),
     lng: Number(row.lng),
+    city: row.city ?? null,
+    country: row.country ?? null,
     notes: row.notes,
     source: row.source,
     status: row.status as Center["status"],
@@ -58,6 +62,7 @@ export class PostgresStore implements CenterRepository {
   /**
    * Crea la tabla `centers` si no existe todavía.
    * Seguro de llamar múltiples veces (idempotente).
+   * Las sentencias ALTER TABLE añaden columnas opcionales en bases ya creadas.
    */
   async init(): Promise<void> {
     await this.sql`
@@ -77,6 +82,9 @@ export class PostgresStore implements CenterRepository {
         updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `;
+    // Migración: añade columnas city/country en bases ya existentes (idempotente)
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS city text`;
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS country text`;
   }
 
   /** Devuelve todos los centros ordenados del más reciente al más antiguo. */
@@ -119,6 +127,60 @@ export class PostgresStore implements CenterRepository {
     ` as CenterRow[];
 
     return rowToCenter(rows[0]);
+  }
+
+  /**
+   * Actualiza parcialmente un centro (panel admin).
+   * Construye el SET dinámico solo con los campos presentes en el patch;
+   * los nombres de columna son hardcoded (sin riesgo de inyección) y
+   * los valores van parametrizados como $N a través del driver neon.
+   * Devuelve el Center actualizado, o null si el id no existe.
+   */
+  async update(id: string, patch: CenterPatch): Promise<Center | null> {
+    const setClauses: string[] = [];
+    const values: unknown[] = [];
+
+    // Cada push() devuelve el nuevo length, que coincide con el índice $N
+    if (patch.name !== undefined)      { setClauses.push(`name = $${values.push(patch.name)}`); }
+    if (patch.address !== undefined)   { setClauses.push(`address = $${values.push(patch.address)}`); }
+    if (patch.phone !== undefined)     { setClauses.push(`phone = $${values.push(patch.phone ?? null)}`); }
+    if (patch.materials !== undefined) {
+      setClauses.push(`materials = $${values.push(JSON.stringify(patch.materials))}::jsonb`);
+    }
+    if (patch.schedule !== undefined)  { setClauses.push(`schedule = $${values.push(patch.schedule)}`); }
+    if (patch.lat !== undefined)       { setClauses.push(`lat = $${values.push(patch.lat)}`); }
+    if (patch.lng !== undefined)       { setClauses.push(`lng = $${values.push(patch.lng)}`); }
+    if (patch.city !== undefined)      { setClauses.push(`city = $${values.push(patch.city ?? null)}`); }
+    if (patch.country !== undefined)   { setClauses.push(`country = $${values.push(patch.country ?? null)}`); }
+    if (patch.notes !== undefined)     { setClauses.push(`notes = $${values.push(patch.notes ?? null)}`); }
+    if (patch.status !== undefined)    { setClauses.push(`status = $${values.push(patch.status)}`); }
+
+    // Patch vacío: devuelve el estado actual sin tocar updated_at
+    if (setClauses.length === 0) return this.getById(id);
+
+    values.push(id);
+    const idIdx = values.length;
+
+    // Llamada en modo raw (string, params[]): compatible con el driver neon en runtime.
+    // Las columnas son literales hardcoded (seguro); los valores van como $N (parametrizados).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows = await (this.sql as any)(
+      `UPDATE centers SET ${setClauses.join(", ")}, updated_at = NOW() WHERE id = $${idIdx} RETURNING *`,
+      values,
+    ) as CenterRow[];
+
+    return rows.length > 0 ? rowToCenter(rows[0]) : null;
+  }
+
+  /**
+   * Elimina un centro por id.
+   * Devuelve true si existía y se borró; false si no se encontró.
+   */
+  async remove(id: string): Promise<boolean> {
+    const rows = await this.sql`
+      DELETE FROM centers WHERE id = ${id} RETURNING id
+    ` as { id: string }[];
+    return rows.length > 0;
   }
 
   /**

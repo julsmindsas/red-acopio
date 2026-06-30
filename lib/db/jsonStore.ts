@@ -9,7 +9,7 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
-import type { Center, CenterInput } from "../types";
+import type { Center, CenterInput, CenterPatch } from "../types";
 import type { CenterRepository, CreateMeta } from "./repository";
 
 /**
@@ -115,6 +115,7 @@ export class JsonStore implements CenterRepository {
       schedule: input.schedule,
       lat: input.lat,
       lng: input.lng,
+      // city/country no forman parte de CenterInput; se dejan como undefined
       notes: input.notes ?? null,
       source: meta?.source ?? "reporte-ciudadano",
       status: meta?.status ?? "reportado",
@@ -125,5 +126,64 @@ export class JsonStore implements CenterRepository {
     centers.push(center);
     await this.writeAll(centers);
     return center;
+  }
+
+  /**
+   * Actualiza parcialmente un centro por id.
+   * Solo aplica los campos presentes en el patch; ignora los undefined.
+   * Actualiza updatedAt automáticamente. Devuelve null si el id no existe.
+   */
+  async update(id: string, patch: CenterPatch): Promise<Center | null> {
+    if (this.readOnly) {
+      throw new Error(
+        "READ_ONLY_STORE: el almacenamiento es de solo lectura en este entorno. " +
+          "Configura DATABASE_URL o POSTGRES_URL (Postgres/Neon) para habilitar edición de centros.",
+      );
+    }
+
+    const centers = await this.readAll();
+    const idx = centers.findIndex((c) => c.id === id);
+    if (idx === -1) return null;
+
+    // Spread del existente y sobreescritura solo de campos presentes en el patch
+    const existing = centers[idx];
+    const updated: Center = {
+      ...existing,
+      ...(patch.name !== undefined && { name: patch.name }),
+      ...(patch.address !== undefined && { address: patch.address }),
+      ...(patch.phone !== undefined && { phone: patch.phone }),
+      ...(patch.materials !== undefined && { materials: patch.materials }),
+      ...(patch.schedule !== undefined && { schedule: patch.schedule }),
+      ...(patch.lat !== undefined && { lat: patch.lat }),
+      ...(patch.lng !== undefined && { lng: patch.lng }),
+      ...(patch.city !== undefined && { city: patch.city }),
+      ...(patch.country !== undefined && { country: patch.country }),
+      ...(patch.notes !== undefined && { notes: patch.notes }),
+      ...(patch.status !== undefined && { status: patch.status }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    centers[idx] = updated;
+    await this.writeAll(centers);
+    return updated;
+  }
+
+  /**
+   * Elimina un centro por id.
+   * Devuelve true si existía y se eliminó; false si no se encontró.
+   */
+  async remove(id: string): Promise<boolean> {
+    if (this.readOnly) {
+      throw new Error(
+        "READ_ONLY_STORE: el almacenamiento es de solo lectura en este entorno. " +
+          "Configura DATABASE_URL o POSTGRES_URL (Postgres/Neon) para habilitar eliminación de centros.",
+      );
+    }
+
+    const centers = await this.readAll();
+    const filtered = centers.filter((c) => c.id !== id);
+    const existed = filtered.length < centers.length;
+    if (existed) await this.writeAll(filtered);
+    return existed;
   }
 }

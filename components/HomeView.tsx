@@ -181,12 +181,13 @@ export default function HomeView({ centers }: { centers: Center[] }) {
                   : "Usar mi ubicación"}
             </button>
 
+            {/* CTA principal: recomendar un centro (botón sólido, bien visible) */}
             <Link
               href="/reportar"
-              className="inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-brand-700 hover:underline"
+              className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition-colors hover:bg-brand-700"
             >
               <span aria-hidden="true">＋</span>
-              Reportar un centro
+              Recomendar un centro de acopio
             </Link>
           </div>
 
@@ -223,6 +224,22 @@ export default function HomeView({ centers }: { centers: Center[] }) {
             onClear={clearFilters}
             resultCount={filtered.length}
           />
+
+          {/* Atribución a la red oficial acopiove.org (discreta y respetuosa) */}
+          <p className="text-xs leading-relaxed text-foreground/55">
+            Los centros{" "}
+            <strong className="font-semibold text-emerald-700">verificados</strong>{" "}
+            provienen de la red oficial{" "}
+            <a
+              href="https://acopiove.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-brand-700 underline-offset-2 hover:underline"
+            >
+              acopiove.org
+            </a>
+            . Los demás son aportes de la comunidad.
+          </p>
         </div>
       </div>
 

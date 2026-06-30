@@ -16,6 +16,11 @@ import StatusBadge from "./StatusBadge";
  *
  * POSTURA DE DATOS (crítica): si el centro NO está "verificado", mostramos un
  * aviso de precaución visible para que la persona confirme antes de acudir.
+ *
+ * ATRIBUCIÓN DE FUENTE: los centros oficiales provienen de la red acopiove.org
+ * (read-only). Mostramos una etiqueta sutil con enlace a la fuente. Como el
+ * área informativa es un <button>, la atribución (que incluye un enlace) va
+ * FUERA de ese botón para no anidar elementos interactivos.
  */
 
 interface CenterCardProps {
@@ -41,6 +46,12 @@ export default function CenterCard({
 }: CenterCardProps) {
   const distance = formatDistance(center.distanceKm);
   const isVerified = center.status === "verificado";
+
+  // Origen del dato para la atribución:
+  //  - oficial: proviene de la red acopiove.org (o cualquier fuente read-only).
+  //  - comunitario: aporte ciudadano aún pendiente de revisión.
+  const isOfficial = center.source === "acopiove.org" || center.readOnly === true;
+  const isCommunity = !isOfficial && center.status === "reportado";
 
   return (
     <article
@@ -69,8 +80,14 @@ export default function CenterCard({
           )}
         </div>
 
-        <div className="mt-1.5">
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <StatusBadge status={center.status} />
+          {center.city && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground/55">
+              <span aria-hidden="true">🏙️</span>
+              {center.city}
+            </span>
+          )}
         </div>
 
         <p className="mt-2 flex items-start gap-1.5 text-sm text-foreground/75">
@@ -105,6 +122,28 @@ export default function CenterCard({
           </p>
         )}
       </button>
+
+      {/* Atribución de fuente (fuera del botón para no anidar interactivos) */}
+      {isOfficial ? (
+        <p className="-mt-1 px-4 pb-3">
+          <a
+            href="https://acopiove.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/50 transition-colors hover:text-brand-700 hover:underline"
+          >
+            <span aria-hidden="true">🔗</span>
+            Fuente: acopiove.org
+          </a>
+        </p>
+      ) : isCommunity ? (
+        <p className="-mt-1 px-4 pb-3">
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/50">
+            <span aria-hidden="true">👥</span>
+            Reporte comunitario
+          </span>
+        </p>
+      ) : null}
 
       {/* Acciones: enlaces independientes con touch targets amplios */}
       <div className="flex border-t border-border">
