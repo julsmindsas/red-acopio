@@ -115,3 +115,51 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Landing — utilidades y animaciones decorativas
+ * --------------------------------------------------------------------------
+ * Solo se usan en la portada. Las animaciones quedan neutralizadas para quien
+ * prefiere menos movimiento gracias al bloque global de arriba (!important).
+ */
+
+/* Malla de puntos que evoca un mapa cartográfico (fondo del hero / paneles). */
+.bg-map-grid {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-brand-600) 20%, transparent) 1.2px,
+    transparent 1.2px
+  );
+  background-size: 22px 22px;
+}
+
+/* Flotación suave para los pines y chips decorativos del hero. */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.animate-float {
+  animation: float-soft 5s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: float-soft 7s ease-in-out infinite;
+}
+
+/* Aparición ascendente al cargar (entrada del hero y de la columna visual). */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

@@ -17,7 +17,10 @@ Aplicación web **mobile-first** para mapear **centros de acopio de ayuda humani
 - 🔁 **Fallback automático a Google Maps** si los *tiles* de OSM fallan al cargar (requiere API key opcional).
 - 📏 **Ordenamiento por distancia** (fórmula de Haversine) al usuario.
 - 🏷️ Para cada centro: **nombre, dirección, teléfono, materiales que acepta, horario y distancia**, con acciones "Llamar" y "Cómo llegar".
-- 📝 **Formulario de reporte ciudadano** con validación (cliente + servidor) compartida vía `zod`.
+- 📝 **Recomendar un centro**: formulario ciudadano con validación (cliente + servidor) compartida vía `zod`.
+- 🤝 **Fuente híbrida**: combina los centros **verificados de [acopiove.org](https://acopiove.org)** (red oficial) con aportes locales, deduplicando por cercanía — para **apoyar sin duplicar**.
+- 🛠️ **Panel administrativo** (`/admin`) para aprobar recomendaciones, editar, verificar y eliminar centros locales.
+- 🔌 **API pública** (`/api/v1`) con CORS y **OpenAPI 3.1** — cualquiera puede consumirla. Docs en **`/api-docs`**.
 - 🗃️ **Base de datos simple e intercambiable** (JSON local en desarrollo, Postgres/Neon en producción).
 - 🌐 **Scraper modular** de fuentes públicas de coordinación humanitaria.
 
@@ -140,6 +143,36 @@ npm run scrape   # ejecuta los adaptadores de scripts/sources/ y genera data/scr
 - Cada centro scrapeado se guarda con su **URL de origen** y estado `sin_verificar`.
 - La transparencia sobre qué se halló (y qué no) está en [`docs/fuentes.md`](docs/fuentes.md).
 - Los datos curados se integran a `data/centers.seed.json` tras revisión humana.
+
+---
+
+## 🔌 API pública (open source)
+
+API REST **abierta, gratuita y con CORS** para que cualquiera construya encima
+(bots, apps, mapas). Documentación interactiva en **[`/api-docs`](https://red-acopio-two.vercel.app/api-docs)** y especificación **OpenAPI 3.1** en `/api/openapi.json`.
+
+Base: `https://red-acopio-two.vercel.app/api/v1`
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/v1/centers` | Lista combinada (oficial + local). Filtros: `?source=all\|official\|local`, `?city=`, `?material=`, `?status=`, `?q=` |
+| `GET` | `/api/v1/centers/{id}` | Un centro por id |
+| `POST` | `/api/v1/centers` | Recomendar un centro (queda como `reportado`) |
+
+```bash
+# Centros verificados en Medellín
+curl "https://red-acopio-two.vercel.app/api/v1/centers?city=Medellín&status=verificado"
+```
+
+```json
+{
+  "attribution": "Centros verificados de acopiove.org … combinados con aportes locales de Red de Acopio.",
+  "total": 56,
+  "items": [ { "id": "...", "name": "...", "materials": ["alimentos"], "status": "verificado", "source": "acopiove.org", ... } ]
+}
+```
+
+> Los datos verificados provienen de la red oficial **[acopiove.org](https://acopiove.org)** (terremotovenezuela.app). Atribúyela si reutilizas los datos.
 
 ---
 
