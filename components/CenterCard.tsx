@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { STATUS_META } from "@/lib/constants";
 import { formatDistance } from "@/lib/geo";
 import type { CenterWithDistance } from "@/lib/types";
@@ -150,6 +151,7 @@ export default function CenterCard({
         {center.phone ? (
           <a
             href={telHref(center.phone)}
+            onClick={() => track("llamar", { fuente: isOfficial ? "oficial" : "comunidad" })}
             className="flex flex-1 items-center justify-center gap-1.5 px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
           >
             <span aria-hidden="true">📞</span>
@@ -165,6 +167,7 @@ export default function CenterCard({
           href={directionsHref(center.lat, center.lng)}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => track("como_llegar", { fuente: isOfficial ? "oficial" : "comunidad" })}
           className="flex flex-1 items-center justify-center gap-1.5 border-l border-border px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
         >
           <span aria-hidden="true">🧭</span>

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import MapView from "@/components/map/MapView";
 import {
   MATERIAL_CATEGORIES,
@@ -146,6 +147,7 @@ export default function ReportForm() {
       });
 
       if (res.status === 201) {
+        track("centro_recomendado"); // evento: recomendación enviada con éxito
         setSuccess(true);
         resetForm();
         window.scrollTo({ top: 0, behavior: "smooth" });

@@ -13,6 +13,7 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",
     "@neondatabase/serverless": "^0.10.4",
+    "@vercel/analytics": "^2.0.1",
     "leaflet": "^1.9.4",
     "next": "16.2.9",
     "react": "19.2.4",

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import MapView from "@/components/map/MapView";
 import { DEFAULT_ZOOM, MEDELLIN_CENTER } from "@/lib/constants";
 import { withDistance } from "@/lib/geo";
@@ -57,6 +58,7 @@ export default function HomeView({
   const [geoState, setGeoState] = useState<GeoState>("idle");
 
   const requestLocation = useCallback(() => {
+    track("usar_ubicacion"); // evento: el usuario pidió ubicarse
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
       setGeoState("unsupported");
       return;
@@ -66,6 +68,7 @@ export default function HomeView({
       (pos) => {
         setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setGeoState("granted");
+        track("ubicacion_concedida"); // evento: permiso concedido con éxito
       },
       (err) => {
         setGeoState(
