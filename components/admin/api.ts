@@ -20,6 +20,29 @@ export interface SessionState {
 }
 
 /**
+ * Métricas de uso del panel administrativo.
+ * Coincide con el shape que devuelve GET /api/admin/metrics.
+ */
+export interface AdminMetrics {
+  /** Totales de un vistazo (tarjetas de resumen). */
+  totals: {
+    /** Centros locales gestionables. */
+    centrosLocales: number;
+    /** Reportes ciudadanos pendientes de revisión. */
+    reportesPendientes: number;
+    /** Consultas totales acumuladas ("Cómo llegar" / "Llamar"). */
+    totalVisitas: number;
+  };
+  /**
+   * Reportes ciudadanos recibidos por día en los últimos 14 días.
+   * Puede venir con huecos: los días sin reportes no aparecen.
+   */
+  reportesPorDia: { fecha: string; cantidad: number }[];
+  /** Centros más consultados (top 10 por visitas). Puede venir vacío. */
+  masConsultados: { centerId: string; centerName: string; visitas: number }[];
+}
+
+/**
  * Resultado uniforme de una llamada a la API.
  * - `ok: true`  -> `data` con la respuesta tipada.
  * - `ok: false` -> `status` HTTP (0 si fue error de red), `error` legible y,
@@ -126,6 +149,24 @@ export async function getCenters(): Promise<Result<Center[]>> {
         res.status === 401
           ? "Tu sesión expiró. Vuelve a iniciar sesión."
           : "No se pudieron cargar los centros.",
+    };
+  } catch {
+    return NET_ERROR;
+  }
+}
+
+/** GET /api/admin/metrics — métricas de uso (totales, reportes por día, top). */
+export async function getMetrics(): Promise<Result<AdminMetrics>> {
+  try {
+    const res = await fetch("/api/admin/metrics", COMMON);
+    if (res.ok) return { ok: true, data: (await res.json()) as AdminMetrics };
+    return {
+      ok: false,
+      status: res.status,
+      error:
+        res.status === 401
+          ? "Tu sesión expiró. Vuelve a iniciar sesión."
+          : "No se pudieron cargar las métricas.",
     };
   } catch {
     return NET_ERROR;

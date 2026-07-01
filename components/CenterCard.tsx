@@ -40,6 +40,24 @@ function directionsHref(lat: number, lng: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
+/**
+ * Registra una consulta al centro (para "centros más consultados" del panel).
+ * Fire-and-forget con `keepalive` para que sobreviva a la navegación; nunca
+ * rompe la experiencia si falla.
+ */
+function recordVisit(id: string, name: string): void {
+  try {
+    fetch("/api/metrics/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ centerId: id, centerName: name }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* no-op */
+  }
+}
+
 export default function CenterCard({
   center,
   selected,
@@ -151,7 +169,10 @@ export default function CenterCard({
         {center.phone ? (
           <a
             href={telHref(center.phone)}
-            onClick={() => track("llamar", { fuente: isOfficial ? "oficial" : "comunidad" })}
+            onClick={() => {
+              track("llamar", { fuente: isOfficial ? "oficial" : "comunidad" });
+              recordVisit(center.id, center.name);
+            }}
             className="flex flex-1 items-center justify-center gap-1.5 px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
           >
             <span aria-hidden="true">📞</span>
@@ -167,7 +188,10 @@ export default function CenterCard({
           href={directionsHref(center.lat, center.lng)}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => track("como_llegar", { fuente: isOfficial ? "oficial" : "comunidad" })}
+          onClick={() => {
+            track("como_llegar", { fuente: isOfficial ? "oficial" : "comunidad" });
+            recordVisit(center.id, center.name);
+          }}
           className="flex flex-1 items-center justify-center gap-1.5 border-l border-border px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
         >
           <span aria-hidden="true">🧭</span>

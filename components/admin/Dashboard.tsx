@@ -13,6 +13,7 @@ import { Banner, Spinner } from "./ui";
 import PendingCard from "./PendingCard";
 import CentersTable from "./CentersTable";
 import EditCenterForm from "./EditCenterForm";
+import MetricsPanel from "./MetricsPanel";
 
 /*
  * Panel principal (autenticado).
@@ -25,6 +26,7 @@ import EditCenterForm from "./EditCenterForm";
  * para volver a la pantalla de login.
  *
  * Secciones:
+ *  0. Métricas de uso (<MetricsPanel/>, con su propia carga/error).
  *  1. Recomendaciones pendientes (status === "reportado").
  *  2. Tabla/lista de todos los centros locales.
  */
@@ -232,6 +234,9 @@ export default function Dashboard({
           value={counts.sin_verificar}
         />
       </section>
+
+      {/* Métricas de uso (carga y error propios, independientes de los centros) */}
+      <MetricsPanel />
 
       {/* 1. Recomendaciones pendientes */}
       <section aria-labelledby="pending-heading">
