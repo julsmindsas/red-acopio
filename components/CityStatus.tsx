@@ -1,0 +1,79 @@
+"use client";
+
+import Link from "next/link";
+import type { AffectedCity } from "@/lib/constants";
+
+/*
+ * Estado de una ciudad sin puntos publicados.
+ * -------------------------------------------------------------------------
+ * En las primeras horas de un desastre, las alcaldías están rescatando gente,
+ * no actualizando su web. Habrá ciudades gravemente afectadas para las que
+ * todavía no exista un solo albergue publicado con nombre y dirección.
+ *
+ * Ante eso, un mapa vacío es lo peor que podemos mostrar: parece que ahí no
+ * pasó nada. Este panel dice explícitamente qué se sabe de la ciudad, admite
+ * que aún no hay puntos confirmados y manda a los canales que sí están
+ * comunicando en vivo — además de a la línea de emergencia.
+ */
+export default function CityStatus({ city }: { city: AffectedCity }) {
+  return (
+    <div className="rounded-2xl border border-accent-300 bg-accent-50 p-5">
+      <h2 className="text-base font-bold text-accent-900">
+        Todavía no hay puntos confirmados en {city.name}
+      </h2>
+
+      {city.note && (
+        <p className="mt-2 text-sm leading-relaxed text-accent-900/90">
+          <strong className="font-semibold">
+            {city.name}, {city.department}:
+          </strong>{" "}
+          {city.note}
+        </p>
+      )}
+
+      <p className="mt-2 text-sm leading-relaxed text-accent-900/90">
+        Las autoridades no han publicado albergues ni centros de acopio con
+        dirección para esta ciudad. En vez de mostrarte un mapa vacío, te
+        dejamos dónde mirar en vivo — y aquí no inventamos puntos.
+      </p>
+
+      {city.channels && city.channels.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {city.channels.map((ch) => (
+            <a
+              key={ch.href}
+              href={ch.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-accent-400 bg-surface px-4 text-sm font-semibold text-accent-900 transition-colors hover:bg-accent-100"
+            >
+              {ch.label}
+              <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-accent-300 pt-4">
+        <a
+          href="tel:123"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-rose-600 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-700"
+        >
+          <span aria-hidden="true">🚨</span> Emergencia: 123
+        </a>
+        <Link
+          href="/ayuda"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-accent-400 bg-surface px-4 text-sm font-semibold text-accent-900 transition-colors hover:bg-accent-100"
+        >
+          Todas las líneas y cómo ayudar
+        </Link>
+        <Link
+          href="/reportar"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-accent-400 bg-surface px-4 text-sm font-semibold text-accent-900 transition-colors hover:bg-accent-100"
+        >
+          <span aria-hidden="true">＋</span> Conozco un punto en {city.name}
+        </Link>
+      </div>
+    </div>
+  );
+}

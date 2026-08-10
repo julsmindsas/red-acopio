@@ -47,55 +47,89 @@ export const EMERGENCY = {
  * Sustituyen al anclaje fijo a Medellín: el mapa arranca en la ciudad más
  * cercana a quien lo abre. Las coordenadas apuntan al centro urbano.
  */
-export const AFFECTED_CITIES: {
+export interface AffectedCity {
   slug: string;
   name: string;
   department: string;
   center: LatLng;
   /** Nota corta sobre la afectación, mostrada en el selector. */
   note?: string;
-}[] = [
+  /**
+   * Canales oficiales de la zona.
+   *
+   * Existen porque, en las primeras horas, los portales institucionales todavía
+   * no publican nada y las autoridades comunican por redes: cuando no tenemos
+   * puntos que mostrar para una ciudad, al menos indicamos dónde mirar en vivo
+   * en vez de dejar un mapa vacío.
+   */
+  channels?: { label: string; href: string }[];
+}
+
+export const AFFECTED_CITIES: AffectedCity[] = [
   {
     slug: "manizales",
     name: "Manizales",
     department: "Caldas",
     center: { lat: 5.0689, lng: -75.5174 },
-    note: "Municipio más afectado: edificios colapsados y albergues activos.",
+    note: "2 fallecidos y más de 10 edificios colapsados. Tres albergues habilitados.",
+    channels: [
+      { label: "Alcaldía de Manizales", href: "https://manizales.gov.co/" },
+    ],
   },
   {
     slug: "pereira",
     name: "Pereira",
     department: "Risaralda",
     center: { lat: 4.8133, lng: -75.6961 },
-    note: "Daños estructurales y afectación del aeropuerto Matecaña.",
+    note: "La ciudad más golpeada: el alcalde reportó 18 fallecidos y decenas de personas atrapadas.",
+    channels: [
+      { label: "Alcaldía de Pereira", href: "https://www.pereira.gov.co/" },
+      { label: "Alcaldía en X", href: "https://x.com/Alcaldiapereira" },
+      { label: "Gobernación de Risaralda en X", href: "https://x.com/Gob_Risaralda" },
+    ],
   },
   {
     slug: "armenia",
     name: "Armenia",
     department: "Quindío",
     center: { lat: 4.5339, lng: -75.6811 },
-    note: "Afectaciones en edificaciones del Eje Cafetero.",
+    note: "Evacuaciones en Armenia y varios municipios del Quindío.",
+    channels: [
+      { label: "Alcaldía de Armenia", href: "https://www.armenia.gov.co/" },
+    ],
   },
   {
     slug: "cali",
     name: "Cali",
     department: "Valle del Cauca",
     center: { lat: 3.4516, lng: -76.532 },
-    note: "Edificios con daño estructural reportado.",
+    note: "Cerca de 20 estructuras colapsadas con personas atrapadas. PMU en la Cruz Roja.",
+    channels: [
+      { label: "Alcaldía de Cali", href: "https://www.cali.gov.co/" },
+      { label: "Alcaldía en X", href: "https://x.com/AlcaldiaDeCali" },
+    ],
   },
   {
     slug: "quibdo",
     name: "Quibdó",
     department: "Chocó",
     center: { lat: 5.6947, lng: -76.6611 },
-    note: "Heridos y daños; afectación del aeropuerto El Caraño.",
+    note: "Heridos y edificaciones colapsadas; el aeropuerto El Caraño resultó afectado.",
+    channels: [
+      { label: "Gobernación del Chocó", href: "https://www.choco.gov.co/" },
+      { label: "Gobernadora en X", href: "https://x.com/NubiaCarolinaCC" },
+    ],
   },
   {
     slug: "san-jose-del-palmar",
     name: "San José del Palmar",
     department: "Chocó",
     center: { lat: 4.8964, lng: -76.2286 },
-    note: "Epicentro del sismo.",
+    note: "Epicentro del sismo. La respuesta la encabeza el Gobierno nacional.",
+    channels: [
+      { label: "Gobernación del Chocó", href: "https://www.choco.gov.co/" },
+      { label: "UNGRD", href: "https://portal.gestiondelriesgo.gov.co/" },
+    ],
   },
   {
     slug: "medellin",
@@ -103,13 +137,20 @@ export const AFFECTED_CITIES: {
     department: "Antioquia",
     center: MEDELLIN_CENTER,
     note: "Sin afectación mayor: punto de recolección y envío de ayuda.",
+    channels: [
+      { label: "Alcaldía de Medellín", href: "https://www.medellin.gov.co/" },
+    ],
   },
   {
     slug: "bogota",
     name: "Bogotá",
     department: "Cundinamarca",
     center: { lat: 4.7110, lng: -74.0721 },
-    note: "Sede del PMU nacional; punto de recolección y envío de ayuda.",
+    note: "Sede del PMU nacional. La ciudad envió 100 rescatistas a las zonas afectadas.",
+    channels: [
+      { label: "UNGRD", href: "https://portal.gestiondelriesgo.gov.co/" },
+      { label: "Alcaldía de Bogotá", href: "https://bogota.gov.co/" },
+    ],
   },
 ];
 

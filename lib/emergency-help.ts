@@ -76,6 +76,69 @@ export const HELP_CHANNELS: HelpChannel[] = [
     verified: true,
     source: "https://portal.gestiondelriesgo.gov.co/",
   },
+  // Líneas nacionales de emergencia difundidas para este sismo. Marcar cada una
+  // por servicio importa: quien necesita una ambulancia pierde tiempo si solo
+  // conoce el 123 y la central está saturada.
+  {
+    id: "linea-125",
+    org: "Emergencias Colombia",
+    label: "Ambulancias — 125",
+    purpose: "emergencia",
+    description: "Solicitud de ambulancia y atención prehospitalaria.",
+    value: "125",
+    href: "tel:125",
+    verified: false,
+    source:
+      "https://www.infobae.com/colombia/2026/08/10/sismo-de-74-en-colombia-estas-son-las-lineas-telefonicas-de-atencion-de-emergencias-a-las-que-pueda-llamar/",
+  },
+  {
+    id: "linea-111",
+    org: "Emergencias Colombia",
+    label: "Atención de desastres — 111",
+    purpose: "emergencia",
+    description: "Línea de atención de desastres.",
+    value: "111",
+    href: "tel:111",
+    verified: false,
+    source:
+      "https://www.infobae.com/colombia/2026/08/10/sismo-de-74-en-colombia-estas-son-las-lineas-telefonicas-de-atencion-de-emergencias-a-las-que-pueda-llamar/",
+  },
+  {
+    id: "linea-119",
+    org: "Bomberos",
+    label: "Bomberos — 119",
+    purpose: "emergencia",
+    description: "Incendios, rescates y estructuras colapsadas.",
+    value: "119",
+    href: "tel:119",
+    verified: false,
+    source:
+      "https://www.infobae.com/colombia/2026/08/10/sismo-de-74-en-colombia-estas-son-las-lineas-telefonicas-de-atencion-de-emergencias-a-las-que-pueda-llamar/",
+  },
+  {
+    id: "linea-144",
+    org: "Defensa Civil",
+    label: "Defensa Civil — 144",
+    purpose: "emergencia",
+    description: "Búsqueda, rescate y atención de damnificados.",
+    value: "144",
+    href: "tel:144",
+    verified: false,
+    source:
+      "https://www.infobae.com/colombia/2026/08/10/sismo-de-74-en-colombia-estas-son-las-lineas-telefonicas-de-atencion-de-emergencias-a-las-que-pueda-llamar/",
+  },
+  {
+    id: "linea-132",
+    org: "Cruz Roja Colombiana",
+    label: "Cruz Roja — 132",
+    purpose: "emergencia",
+    description: "Atención prehospitalaria y ayuda humanitaria.",
+    value: "132",
+    href: "tel:132",
+    verified: false,
+    source:
+      "https://www.infobae.com/colombia/2026/08/10/sismo-de-74-en-colombia-estas-son-las-lineas-telefonicas-de-atencion-de-emergencias-a-las-que-pueda-llamar/",
+  },
   {
     id: "ungrd-gratuita",
     org: "UNGRD",

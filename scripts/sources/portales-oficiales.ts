@@ -22,13 +22,34 @@
 import * as cheerio from "cheerio";
 import type { RawCenter, Source } from "./types";
 
-/** Portales que se revisan en cada corrida. */
+/**
+ * Portales que se revisan en cada corrida: las alcaldías de las ciudades
+ * afectadas, las gobernaciones de sus departamentos y la UNGRD.
+ *
+ * Al día del sismo todos publicaban aún noticias previas al evento — están
+ * rescatando gente, no actualizando la web. Por eso conviene correr el scraper
+ * varias veces al día durante los primeros días.
+ */
 const PORTALS: { label: string; url: string }[] = [
+  // Caldas
   { label: "Alcaldía de Manizales", url: "https://manizales.gov.co/" },
+  { label: "Gobernación de Caldas", url: "https://caldas.gov.co/" },
+  // Risaralda — la zona con más fallecidos reportados
   { label: "Alcaldía de Pereira", url: "https://www.pereira.gov.co/" },
+  { label: "Gobernación de Risaralda", url: "https://www.risaralda.gov.co/" },
+  { label: "Alcaldía de Dosquebradas", url: "https://www.dosquebradas.gov.co/" },
+  // Quindío
+  { label: "Alcaldía de Armenia", url: "https://www.armenia.gov.co/" },
+  { label: "Gobernación del Quindío", url: "https://quindio.gov.co/" },
+  // Valle del Cauca
   { label: "Alcaldía de Cali", url: "https://www.cali.gov.co/" },
+  { label: "Gobernación del Valle", url: "https://www.valledelcauca.gov.co/" },
+  // Chocó — epicentro
   { label: "Gobernación del Chocó", url: "https://www.choco.gov.co/" },
+  { label: "Alcaldía de Quibdó", url: "https://www.quibdo-choco.gov.co/" },
+  // Nacional
   { label: "UNGRD", url: "https://portal.gestiondelriesgo.gov.co/" },
+  { label: "Cruz Roja Colombiana", url: "https://www.cruzrojacolombiana.org/" },
 ];
 
 /**
@@ -124,8 +145,13 @@ export const portalesOficiales: Source = {
           console.log(`        · ${lead.text}\n          ${lead.href}`);
         }
       } catch (err) {
+        // Varios portales oficiales bloquean peticiones automáticas (HTTP 403).
+        // No se insiste ni se disfraza el agente: se avisa con la URL para que
+        // una persona la abra. Un portal bloqueado no es un portal sin noticias.
         console.warn(
-          `    [monitor] ${portal.label}: no se pudo revisar (${(err as Error).message}).`,
+          `    [monitor] ${portal.label}: no se pudo revisar automáticamente ` +
+            `(${(err as Error).message}). Ábrelo a mano:\n` +
+            `        ${portal.url}`,
         );
       }
     }

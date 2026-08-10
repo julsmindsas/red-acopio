@@ -104,10 +104,17 @@ export default function MapView({
     return () => window.clearTimeout(timer);
   }, [provider, googleAvailable, switchToGoogle]);
 
+  // Al cambiar de ciudad se remonta el mapa con `key`, en vez de animar hacia el
+  // nuevo centro: los mapas solo aplican su `center` al construirse, y una
+  // animación que falla en silencio deja a la persona mirando otra ciudad.
+  // Remontar es feo pero siempre acierta, que es lo que importa aquí.
+  const centerKey = `${center.lat},${center.lng}`;
+
   return (
     <div className={`relative h-full w-full ${className ?? ''}`}>
       {provider === 'leaflet' ? (
         <LeafletMap
+          key={centerKey}
           markers={markers}
           userLocation={userLocation}
           selectedId={selectedId}
@@ -120,6 +127,7 @@ export default function MapView({
         />
       ) : (
         <GoogleMapComponent
+          key={centerKey}
           markers={markers}
           userLocation={userLocation}
           selectedId={selectedId}

@@ -67,29 +67,13 @@ function UserLocationController({
 }
 
 // ---------------------------------------------------------------------------
-// Controlador interno: vuela cuando cambia la ciudad activa.
-// `<MapContainer center>` solo se aplica al montar, así que sin esto el
-// selector de ciudad no movería el mapa.
-// ---------------------------------------------------------------------------
-function CenterController({ center }: { center: LatLng }) {
-  const map = useMap();
-  const first = useRef(true);
-
-  useEffect(() => {
-    // En el montaje el mapa ya nace en `center`: volar sería redundante.
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    map.flyTo([center.lat, center.lng], DEFAULT_ZOOM, { animate: true });
-  }, [center, map]);
-
-  return null;
-}
-
-// ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
+//
+// NOTA: `<MapContainer center>` solo se aplica al construir el mapa. Los
+// cambios de ciudad NO se animan desde aquí: MapView remonta este componente
+// con una `key` derivada del centro, que es determinista. Un flyTo que falle en
+// silencio dejaría a la persona mirando la ciudad equivocada.
 
 /**
  * Mapa de Leaflet con tiles de OpenStreetMap.
@@ -127,9 +111,6 @@ export default function LeafletMap({
           tileload:  () => onTileLoad?.(),
         }}
       />
-
-      {/* Vuela a la ciudad activa cuando el usuario la cambia */}
-      <CenterController center={center} />
 
       {/* Vuela al marcador seleccionado y abre su popup */}
       <MapController selectedId={selectedId} markerRefs={markerRefs} />

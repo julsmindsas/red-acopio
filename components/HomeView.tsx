@@ -9,7 +9,7 @@ import {
   DEFAULT_CITY,
   DEFAULT_ZOOM,
 } from "@/lib/constants";
-import { nearestPlace, withDistance } from "@/lib/geo";
+import { haversineKm, nearestPlace, withDistance } from "@/lib/geo";
 import type {
   Center,
   LatLng,
@@ -20,6 +20,7 @@ import type {
   VerificationStatus,
 } from "@/lib/types";
 import CenterList from "./CenterList";
+import CityStatus from "./CityStatus";
 import FilterBar from "./FilterBar";
 import IntentBar from "./IntentBar";
 
@@ -214,6 +215,22 @@ export default function HomeView({
     }
     return nearestPlace(AFFECTED_CITIES, userLoc) ?? DEFAULT_CITY;
   }, [manualCity, userLoc]);
+
+  /**
+   * ¿Hay algún punto en el área de la ciudad activa? Se mide por distancia
+   * (30 km) y no por el campo `city`, que muchas fuentes no publican.
+   *
+   * Si no hay ninguno, mostramos el estado de la ciudad en lugar de una lista
+   * vacía: hay ciudades gravemente afectadas para las que todavía no se ha
+   * publicado ni un albergue con dirección.
+   */
+  const cityHasPoints = useMemo(
+    () =>
+      centers.some(
+        (c) => haversineKm({ lat: c.lat, lng: c.lng }, activeCity.center) <= 30,
+      ),
+    [centers, activeCity],
+  );
 
   return (
     <div className="flex flex-1 flex-col">
@@ -424,8 +441,16 @@ export default function HomeView({
           </div>
         </section>
 
-        {/* Lista de centros */}
-        <section aria-label="Lista de centros de acopio" className="lg:order-1">
+        {/* Lista de puntos */}
+        <section aria-label="Lista de puntos de ayuda" className="lg:order-1">
+          {/* Sin puntos en esta ciudad: decir qué se sabe y a dónde mirar,
+              en vez de dejar la impresión de que allí no pasó nada. */}
+          {!cityHasPoints && (
+            <div className="mb-4">
+              <CityStatus city={activeCity} />
+            </div>
+          )}
+
           <CenterList
             centers={filtered}
             selectedId={selectedId}
