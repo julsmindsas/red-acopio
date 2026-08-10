@@ -4,18 +4,24 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
 import MapView from "@/components/map/MapView";
-import { DEFAULT_ZOOM, MEDELLIN_CENTER } from "@/lib/constants";
-import { withDistance } from "@/lib/geo";
+import {
+  AFFECTED_CITIES,
+  DEFAULT_CITY,
+  DEFAULT_ZOOM,
+} from "@/lib/constants";
+import { nearestPlace, withDistance } from "@/lib/geo";
 import type {
   Center,
   LatLng,
   MapMarker,
   MapProviderName,
   MaterialCategory,
+  PointKind,
   VerificationStatus,
 } from "@/lib/types";
 import CenterList from "./CenterList";
 import FilterBar from "./FilterBar";
+import IntentBar from "./IntentBar";
 
 /*
  * Vista principal (cliente). Orquesta:
@@ -45,6 +51,7 @@ function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
 export default function HomeView({
   centers,
   initialMaterial,
+  initialKinds,
 }: {
   centers: Center[];
   /**
@@ -52,6 +59,11 @@ export default function HomeView({
    * /mapa?material=mascotas). Si se omite, el filtro arranca vacío.
    */
   initialMaterial?: MaterialCategory;
+  /**
+   * Tipos de punto con los que arrancar (deep-link desde la portada, p. ej.
+   * /mapa?necesito=refugio). Permite entrar ya filtrado, sin tocar nada.
+   */
+  initialKinds?: PointKind[];
 }) {
   // --- Geolocalización -----------------------------------------------------
   const [userLoc, setUserLoc] = useState<LatLng | null>(null);
@@ -84,6 +96,9 @@ export default function HomeView({
   // Para añadir un filtro nuevo, agrega aquí su estado y aplícalo en `filtered`.
   // Inicializador perezoso: si llega un material por deep-link, el filtro
   // arranca con ese material preseleccionado; si no, vacío (sin filtrar).
+  const [kindFilter, setKindFilter] = useState<Set<PointKind>>(
+    () => new Set(initialKinds ?? []),
+  );
   const [materialFilter, setMaterialFilter] = useState<Set<MaterialCategory>>(
     () => (initialMaterial ? new Set([initialMaterial]) : new Set()),
   );
@@ -91,6 +106,27 @@ export default function HomeView({
     new Set(),
   );
 
+  const toggleKind = useCallback(
+    (k: PointKind) => setKindFilter((s) => toggleInSet(s, k)),
+    [],
+  );
+
+  /** Selección desde IntentBar: reemplaza la selección (no acumula). */
+  const pickKinds = useCallback((kinds: PointKind[]) => {
+    setKindFilter((prev) => {
+      const same =
+        prev.size === kinds.length && kinds.every((k) => prev.has(k));
+      // Volver a tocar la intención activa la desactiva: sale de la vista
+      // filtrada sin tener que buscar otro botón.
+      return same ? new Set() : new Set(kinds);
+    });
+  }, []);
+
+  const clearKinds = useCallback(() => setKindFilter(new Set()), []);
+
+  /** Cuántos criterios hay activos: se muestra en el resumen de "Más filtros". */
+  const activeFilterCount =
+    kindFilter.size + materialFilter.size + statusFilter.size;
   const toggleMaterial = useCallback(
     (m: MaterialCategory) => setMaterialFilter((s) => toggleInSet(s, m)),
     [],
@@ -100,6 +136,7 @@ export default function HomeView({
     [],
   );
   const clearFilters = useCallback(() => {
+    setKindFilter(new Set());
     setMaterialFilter(new Set());
     setStatusFilter(new Set());
   }, []);
@@ -113,14 +150,18 @@ export default function HomeView({
   const filtered = useMemo(
     () =>
       withDist.filter((c) => {
+        const matchKind = kindFilter.size === 0 || kindFilter.has(c.kind);
+        // El filtro de materiales solo se aplica a los centros de acopio: un
+        // albergue no tiene materiales y quedaría descartado siempre.
         const matchMaterial =
           materialFilter.size === 0 ||
+          c.kind !== "acopio" ||
           c.materials.some((m) => materialFilter.has(m));
         const matchStatus =
           statusFilter.size === 0 || statusFilter.has(c.status);
-        return matchMaterial && matchStatus;
+        return matchKind && matchMaterial && matchStatus;
       }),
-    [withDist, materialFilter, statusFilter],
+    [withDist, kindFilter, materialFilter, statusFilter],
   );
 
   // Marcadores del mapa derivados de la lista filtrada (mapa y lista coinciden).
@@ -132,6 +173,7 @@ export default function HomeView({
         lng: c.lng,
         title: c.name,
         status: c.status,
+        kind: c.kind,
       })),
     [filtered],
   );
@@ -160,8 +202,42 @@ export default function HomeView({
   // --- Aviso de cambio de proveedor de mapa -------------------------------
   const [mapProvider, setMapProvider] = useState<MapProviderName>("leaflet");
 
+  // --- Ciudad activa -------------------------------------------------------
+  // Sin ubicación, el mapa abre en la ciudad más afectada; con ubicación, en la
+  // más cercana a la persona. Una selección manual siempre manda.
+  const [manualCity, setManualCity] = useState<string | null>(null);
+
+  const activeCity = useMemo(() => {
+    if (manualCity) {
+      const picked = AFFECTED_CITIES.find((c) => c.slug === manualCity);
+      if (picked) return picked;
+    }
+    return nearestPlace(AFFECTED_CITIES, userLoc) ?? DEFAULT_CITY;
+  }, [manualCity, userLoc]);
+
   return (
     <div className="flex flex-1 flex-col">
+      {/* Emergencia: la vía más rápida a los canales oficiales */}
+      <div className="border-b border-rose-200 bg-rose-50">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 text-xs text-rose-900 sm:text-sm">
+          <span>
+            <span aria-hidden="true">🚨</span>{" "}
+            <strong className="font-semibold">¿Es una emergencia?</strong> Llama
+            al{" "}
+            <a href="tel:123" className="font-bold underline underline-offset-2">
+              123
+            </a>
+            .
+          </span>
+          <Link
+            href="/ayuda"
+            className="font-semibold text-rose-800 underline underline-offset-2 hover:text-rose-900"
+          >
+            Buscar a un familiar y otros canales oficiales →
+          </Link>
+        </div>
+      </div>
+
       {/* Aviso global de postura de datos (siempre visible) */}
       <div className="border-b border-accent-200 bg-accent-50">
         <p className="mx-auto flex max-w-6xl items-start gap-2 px-4 py-2.5 text-xs leading-relaxed text-accent-900 sm:text-sm">
@@ -170,15 +246,22 @@ export default function HomeView({
           </span>
           <span>
             <strong className="font-semibold">Información comunitaria.</strong>{" "}
-            Algunos centros están <em>sin verificar</em>. Confirma por teléfono
+            Algunos puntos están <em>sin verificar</em>. Confirma por teléfono
             antes de acudir o donar.
           </span>
         </p>
       </div>
 
-      {/* Controles: ubicación + filtros */}
+      {/* Controles: intención + ubicación + filtros */}
       <div className="mx-auto w-full max-w-6xl px-4 pt-4">
         <div className="flex flex-col gap-3">
+          {/* Lo primero y más grande: qué necesitas */}
+          <IntentBar
+            kindFilter={kindFilter}
+            onPick={pickKinds}
+            onClear={clearKinds}
+          />
+
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -196,15 +279,45 @@ export default function HomeView({
                   : "Usar mi ubicación"}
             </button>
 
-            {/* CTA principal: recomendar un centro (botón sólido, bien visible) */}
+            {/* Ciudad activa: el mapa ya no vive anclado a una sola ciudad */}
+            <label className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground/80">
+              <span aria-hidden="true">🏙️</span>
+              <span className="sr-only">Ciudad</span>
+              <select
+                value={activeCity.slug}
+                onChange={(e) => {
+                  setManualCity(e.target.value);
+                  track("cambio_ciudad", { ciudad: e.target.value });
+                }}
+                className="cursor-pointer bg-transparent font-semibold text-foreground outline-none"
+              >
+                {AFFECTED_CITIES.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {/* CTA principal: recomendar un punto (botón sólido, bien visible) */}
             <Link
               href="/reportar"
               className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition-colors hover:bg-brand-700"
             >
               <span aria-hidden="true">＋</span>
-              Recomendar un centro de acopio
+              Recomendar un punto
             </Link>
           </div>
+
+          {/* Contexto de la ciudad activa */}
+          {activeCity.note && (
+            <p className="text-xs text-foreground/60">
+              <strong className="font-semibold text-foreground/75">
+                {activeCity.name}, {activeCity.department}:
+              </strong>{" "}
+              {activeCity.note}
+            </p>
+          )}
 
           {/* Mensajes de estado de la geolocalización */}
           {geoState === "granted" && (
@@ -231,30 +344,52 @@ export default function HomeView({
             </p>
           )}
 
-          <FilterBar
-            materialFilter={materialFilter}
-            statusFilter={statusFilter}
-            onToggleMaterial={toggleMaterial}
-            onToggleStatus={toggleStatus}
-            onClear={clearFilters}
-            resultCount={filtered.length}
-          />
-
-          {/* Atribución a la red oficial acopiove.org (discreta y respetuosa) */}
-          <p className="text-xs leading-relaxed text-foreground/55">
-            Los centros{" "}
-            <strong className="font-semibold text-emerald-700">verificados</strong>{" "}
-            provienen de la red oficial{" "}
-            <a
-              href="https://acopiove.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-brand-700 underline-offset-2 hover:underline"
-            >
-              acopiove.org
-            </a>
-            . Los demás son aportes de la comunidad.
+          {/* Cuántos puntos se están viendo: feedback inmediato y siempre visible.
+              Solo se afirma cercanía cuando hay ubicación real: la lista incluye
+              puntos de todo el país, no solo de la ciudad del mapa. */}
+          <p aria-live="polite" className="px-0.5 text-sm text-foreground/70">
+            {filtered.length === 0
+              ? "No hay puntos que coincidan. Prueba a quitar filtros."
+              : `Mostrando ${filtered.length} ${
+                  filtered.length === 1 ? "punto" : "puntos"
+                }${
+                  userLoc
+                    ? ", del más cercano a ti al más lejano."
+                    : `. El mapa está centrado en ${activeCity.name}.`
+                }`}
           </p>
+
+          {/* Filtros finos: plegados, para no abrumar a quien solo quiere ver puntos */}
+          <details className="group rounded-xl border border-border bg-surface">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 text-sm font-semibold text-foreground/80">
+              <span>
+                <span aria-hidden="true">⚙️</span> Más filtros
+                {activeFilterCount > 0 && (
+                  <span className="ml-2 rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </span>
+              <span
+                aria-hidden="true"
+                className="text-foreground/50 transition-transform group-open:rotate-180"
+              >
+                ▾
+              </span>
+            </summary>
+            <div className="border-t border-border px-4 py-3">
+              <FilterBar
+                kindFilter={kindFilter}
+                materialFilter={materialFilter}
+                statusFilter={statusFilter}
+                onToggleKind={toggleKind}
+                onToggleMaterial={toggleMaterial}
+                onToggleStatus={toggleStatus}
+                onClear={clearFilters}
+                resultCount={filtered.length}
+              />
+            </div>
+          </details>
         </div>
       </div>
 
@@ -281,7 +416,7 @@ export default function HomeView({
               userLocation={userLoc}
               selectedId={selectedId}
               onSelect={handleSelect}
-              center={MEDELLIN_CENTER}
+              center={activeCity.center}
               zoom={DEFAULT_ZOOM}
               onProviderChange={setMapProvider}
               className="h-full w-full"

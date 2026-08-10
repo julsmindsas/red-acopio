@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { INTENTS } from "@/lib/intents";
 
 /*
  * Hero de la portada (Server Component — sin interactividad).
  * Estructura:
  *   - Fondo decorativo: halo cálido + malla cartográfica difuminada con máscara.
  *   - Columna de texto: eyebrow con banderas, titular fuerte, subtítulo y 2 CTAs.
- *   - Columna visual: un "mapa" estilizado con la ruta Colombia → Venezuela,
- *     pines de bandera y chips de materiales flotando (puro CSS/SVG, sin imágenes).
+ *   - Columna visual: un "mapa" estilizado con pines de los dos puntos más
+ *     buscados tras un sismo y chips de materiales flotando (puro CSS/SVG).
  */
 
 export default function Hero() {
@@ -25,38 +26,50 @@ export default function Hero() {
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-14 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:py-24">
         {/* ---- Columna de texto ---- */}
         <div className="animate-rise">
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-800">
+          <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-900">
             <span aria-hidden="true">🇨🇴</span>
-            <span aria-hidden="true" className="text-brand-400">
-              →
-            </span>
-            <span aria-hidden="true">🇻🇪</span>
-            <span>Ayuda para los terremotos en Venezuela · 2026</span>
+            <span>Sismo de magnitud 7.4 · Chocó · 10 de agosto de 2026</span>
           </span>
 
           <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Dónde donar para{" "}
-            <span className="text-brand-600">Venezuela</span>,{" "}
+            Dónde refugiarse y{" "}
+            <span className="text-brand-600">dónde donar</span>,{" "}
             <br className="hidden sm:block" />
-            desde Colombia
+            cerca de ti
           </h1>
 
           <p className="mt-5 max-w-xl text-base leading-relaxed text-foreground/70 sm:text-lg">
             Un mapa{" "}
             <strong className="font-semibold text-foreground">
-              abierto y verificado
+              abierto y comunitario
             </strong>{" "}
-            de centros de acopio en Medellín y toda Colombia. Encuentra el punto
-            más cercano, confírmalo y dona — en minutos.
+            de albergues, centros de acopio, brigadas médicas y puntos de agua
+            en Manizales, Pereira, Armenia, Cali, Quibdó y el resto del país.
           </p>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          {/* Entrada por intención: un toque desde la portada al mapa filtrado */}
+          <div className="mt-7 grid gap-2.5 sm:grid-cols-3">
+            {INTENTS.map((intent) => (
+              <Link
+                key={intent.id}
+                href={`/mapa?necesito=${intent.id}`}
+                className="flex min-h-16 items-center gap-3 rounded-2xl border-2 border-border bg-surface px-4 py-3 text-base font-bold text-foreground shadow-sm transition-colors hover:border-brand-500 hover:bg-brand-50"
+              >
+                <span aria-hidden="true" className="text-3xl leading-none">
+                  {intent.emoji}
+                </span>
+                <span className="leading-tight">{intent.title}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/mapa"
               className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-600 px-6 text-base font-semibold text-white shadow-lg shadow-brand-600/30 transition-all hover:bg-brand-700 hover:shadow-brand-600/40"
             >
               <span aria-hidden="true">🗺️</span>
-              Ver el mapa
+              Ver todo el mapa
               <span
                 aria-hidden="true"
                 className="transition-transform group-hover:translate-x-0.5"
@@ -65,11 +78,11 @@ export default function Hero() {
               </span>
             </Link>
             <Link
-              href="/reportar"
+              href="/ayuda"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-6 text-base font-semibold text-foreground transition-colors hover:bg-surface-muted"
             >
-              <span aria-hidden="true">＋</span>
-              Recomendar un centro
+              <span aria-hidden="true">🚨</span>
+              Cómo ayudar ahora
             </Link>
           </div>
 
@@ -77,7 +90,7 @@ export default function Hero() {
           <p className="mt-6 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs text-foreground/55">
             <span className="inline-flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-emerald-500" />
-              Datos de acopiove.org
+              Cada punto cita su fuente
             </span>
             <span aria-hidden="true">·</span>
             <span>Aportes de la comunidad</span>
@@ -119,11 +132,11 @@ function HeroMap() {
           />
         </svg>
 
-        {/* Pin de origen (Colombia) y destino (Venezuela) */}
-        <PinBadge flag="🇨🇴" label="Colombia" className="left-[27%] top-[70%]" />
+        {/* Los dos puntos que más se buscan tras un sismo */}
+        <PinBadge flag="📦" label="Acopio" className="left-[27%] top-[70%]" />
         <PinBadge
-          flag="🇻🇪"
-          label="Venezuela"
+          flag="🏠"
+          label="Albergue"
           pulse
           className="left-[75%] top-[30%]"
         />

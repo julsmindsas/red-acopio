@@ -47,6 +47,31 @@ export function withDistance(
     .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
 }
 
+/**
+ * Devuelve el elemento del catálogo cuyo `center` está más cerca de `from`.
+ *
+ * Se usa para decidir en qué ciudad abrir el mapa: quien lo abre en Pereira no
+ * debería aterrizar en Manizales. Si `from` es `null` no hay nada que comparar
+ * y se devuelve `null` para que el llamador aplique su propio valor por defecto.
+ */
+export function nearestPlace<T extends { center: LatLng }>(
+  places: readonly T[],
+  from: LatLng | null,
+): T | null {
+  if (!from || places.length === 0) return null;
+
+  let best = places[0];
+  let bestKm = haversineKm(from, best.center);
+  for (const place of places.slice(1)) {
+    const km = haversineKm(from, place.center);
+    if (km < bestKm) {
+      best = place;
+      bestKm = km;
+    }
+  }
+  return best;
+}
+
 /** Formatea una distancia en km a un texto amigable ("350 m", "1,2 km"). */
 export function formatDistance(km: number | null): string {
   if (km === null || Number.isNaN(km)) return "";

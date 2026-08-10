@@ -10,6 +10,7 @@ import path from "path";
 import crypto from "crypto";
 
 import type { Center, CenterInput, CenterPatch } from "../types";
+import { normalizeCenter } from "../center-normalize";
 import type { CenterRepository, CreateMeta } from "./repository";
 
 /**
@@ -72,7 +73,8 @@ export class JsonStore implements CenterRepository {
       this.readOnly ? this.seedPath : this.localPath,
       "utf-8",
     );
-    return JSON.parse(raw) as Center[];
+    // normalizeCenter rellena kind/operational en registros anteriores al sismo.
+    return (JSON.parse(raw) as Center[]).map(normalizeCenter);
   }
 
   /** Escribe la lista completa de centros al archivo local. */
@@ -110,8 +112,12 @@ export class JsonStore implements CenterRepository {
       id,
       name: input.name,
       address: input.address,
+      kind: input.kind ?? "acopio",
       phone: input.phone ?? null,
       materials: input.materials,
+      // Un reporte ciudadano recién creado no afirma nada sobre la operación
+      // del punto: eso lo confirma quien lo verifica.
+      operational: "desconocido",
       schedule: input.schedule,
       lat: input.lat,
       lng: input.lng,
@@ -151,8 +157,14 @@ export class JsonStore implements CenterRepository {
       ...existing,
       ...(patch.name !== undefined && { name: patch.name }),
       ...(patch.address !== undefined && { address: patch.address }),
+      ...(patch.kind !== undefined && { kind: patch.kind }),
       ...(patch.phone !== undefined && { phone: patch.phone }),
       ...(patch.materials !== undefined && { materials: patch.materials }),
+      ...(patch.urgentNeeds !== undefined && { urgentNeeds: patch.urgentNeeds }),
+      ...(patch.notReceiving !== undefined && {
+        notReceiving: patch.notReceiving,
+      }),
+      ...(patch.operational !== undefined && { operational: patch.operational }),
       ...(patch.schedule !== undefined && { schedule: patch.schedule }),
       ...(patch.lat !== undefined && { lat: patch.lat }),
       ...(patch.lng !== undefined && { lng: patch.lng }),

@@ -8,9 +8,11 @@ import {
   MATERIAL_CATEGORIES,
   MATERIAL_EMOJI,
   MATERIAL_LABELS,
+  POINT_KINDS,
+  POINT_KIND_META,
 } from "@/lib/constants";
 import { centerInputSchema, formatZodErrors } from "@/lib/validation";
-import type { ApiError, MaterialCategory } from "@/lib/types";
+import type { ApiError, MaterialCategory, PointKind } from "@/lib/types";
 
 /*
  * Formulario para recomendar un nuevo centro de acopio.
@@ -28,6 +30,7 @@ const EMPTY_ERRORS: Record<string, string[]> = {};
 
 export default function ReportForm() {
   // --- Estado del formulario ----------------------------------------------
+  const [kind, setKind] = useState<PointKind>("acopio");
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
@@ -98,6 +101,7 @@ export default function ReportForm() {
   }, []);
 
   const resetForm = useCallback(() => {
+    setKind("acopio");
     setName("");
     setAddress("");
     setPhone("");
@@ -118,10 +122,13 @@ export default function ReportForm() {
     // Construimos el objeto a validar. lat/lng se convierten a número; si están
     // vacíos pasamos `undefined` para que zod muestre "Ubica el centro en el mapa.".
     const candidate = {
+      kind,
       name,
       address,
       phone: phone.trim() === "" ? null : phone,
-      materials: Array.from(materials),
+      // Solo un centro de acopio declara materiales; un albergue o una brigada
+      // médica no reciben donaciones.
+      materials: kind === "acopio" ? Array.from(materials) : [],
       schedule,
       lat: lat === "" ? undefined : Number(lat),
       lng: lng === "" ? undefined : Number(lng),
@@ -223,8 +230,50 @@ export default function ReportForm() {
         </div>
       )}
 
+      {/* Tipo de punto: define qué se pregunta más abajo */}
+      <fieldset>
+        <legend className="text-sm font-semibold text-foreground">
+          ¿Qué tipo de punto es?{" "}
+          <span className="text-red-600" aria-hidden="true">
+            *
+          </span>
+        </legend>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {POINT_KINDS.map((k) => {
+            const meta = POINT_KIND_META[k];
+            const checked = kind === k;
+            return (
+              <label
+                key={k}
+                className={`flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2.5 text-sm transition-colors ${
+                  checked
+                    ? "border-brand-600 bg-brand-50 text-brand-900"
+                    : "border-border bg-surface text-foreground/80 hover:border-brand-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="kind"
+                  value={k}
+                  checked={checked}
+                  onChange={() => setKind(k)}
+                  className="mt-0.5 h-4 w-4 accent-brand-600"
+                />
+                <span>
+                  <span aria-hidden="true">{meta.emoji}</span>{" "}
+                  <span className="font-medium">{meta.label}</span>
+                  <span className="block text-xs text-foreground/55">
+                    {meta.description}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
       <Field
-        label="Nombre del centro"
+        label={`Nombre ${kind === "acopio" ? "del centro" : "del lugar"}`}
         htmlFor="name"
         required
         error={errFor("name")}
@@ -235,7 +284,11 @@ export default function ReportForm() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ej. Parroquia San José"
+          placeholder={
+            kind === "albergue"
+              ? "Ej. Coliseo Mayor de Manizales"
+              : "Ej. Parroquia San José"
+          }
           aria-invalid={!!errFor("name")}
           aria-describedby={errFor("name") ? "name-error" : undefined}
           className={inputClass(!!errFor("name"))}
@@ -281,8 +334,8 @@ export default function ReportForm() {
         />
       </Field>
 
-      {/* Materiales (mínimo 1) */}
-      <fieldset>
+      {/* Materiales: solo aplican a un centro de acopio (mínimo 1) */}
+      <fieldset className={kind === "acopio" ? "" : "hidden"}>
         <legend className="text-sm font-semibold text-foreground">
           ¿Qué materiales recibe?{" "}
           <span className="text-red-600" aria-hidden="true">
@@ -413,8 +466,9 @@ export default function ReportForm() {
                     id: "nuevo",
                     lat: coords.lat,
                     lng: coords.lng,
-                    title: name.trim() || "Centro recomendado",
+                    title: name.trim() || "Punto recomendado",
                     status: "reportado",
+                    kind,
                   },
                 ]}
                 userLocation={null}

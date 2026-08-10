@@ -35,6 +35,40 @@ export const VERIFICATION_STATUSES = [
 
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
 
+/**
+ * Tipo de punto en el mapa.
+ *
+ * Una emergencia no se atiende solo con donaciones: quien perdió su casa
+ * necesita un albergue, quien está herido una brigada médica y quien se quedó
+ * sin acueducto un punto de agua. Todos son puntos geolocalizados con horario y
+ * contacto, así que comparten la misma estructura que un centro de acopio.
+ */
+export const POINT_KINDS = [
+  "acopio", // recibe donaciones
+  "albergue", // alojamiento temporal para damnificados
+  "brigada_medica", // atención médica / primeros auxilios
+  "punto_agua", // distribución de agua potable
+] as const;
+
+export type PointKind = (typeof POINT_KINDS)[number];
+
+/**
+ * Estado operativo del punto *en este momento*.
+ *
+ * Distinto de `VerificationStatus` (que habla de la confianza en el dato):
+ * este campo habla de si el punto está funcionando y si puede recibir más.
+ * Es la señal que evita el colapso logístico clásico de toda emergencia:
+ * decenas de personas llevando donaciones a un centro que ya está saturado.
+ */
+export const OPERATIONAL_STATUSES = [
+  "recibiendo", // abierto y con capacidad
+  "lleno", // abierto pero saturado: no llevar más por ahora
+  "cerrado", // no está operando
+  "desconocido", // sin información reciente
+] as const;
+
+export type OperationalStatus = (typeof OPERATIONAL_STATUSES)[number];
+
 /** Par de coordenadas geográficas. */
 export interface LatLng {
   lat: number;
@@ -48,10 +82,30 @@ export interface Center {
   id: string;
   name: string;
   address: string;
-  /** Teléfono de contacto. `null` si no se conoce. */
+  /**
+   * Qué es este punto. Los datos anteriores al sismo de Colombia no traen el
+   * campo, así que los stores lo normalizan a `"acopio"` al leer.
+   */
+  kind: PointKind;
+  /** Teléfono de contacto. `null` si se desconoce. */
   phone: string | null;
-  /** Materiales que el centro acepta. */
+  /**
+   * Materiales que el punto acepta. Para albergues, brigadas médicas y puntos
+   * de agua puede venir vacío (no reciben donaciones).
+   */
   materials: MaterialCategory[];
+  /**
+   * Lo que el punto **más necesita ahora**. Subconjunto de `materials` que la
+   * UI destaca para dirigir las donaciones a donde hacen falta.
+   */
+  urgentNeeds?: MaterialCategory[];
+  /**
+   * Lo que el punto pidió **no** seguir recibiendo (normalmente porque está
+   * saturado de eso). Evita que la gente lleve lo que sobra.
+   */
+  notReceiving?: MaterialCategory[];
+  /** Si está funcionando ahora y si puede recibir más. */
+  operational: OperationalStatus;
   /** Horario en texto libre, ej. "Lun-Vie 8:00am-5:00pm". */
   schedule: string;
   lat: number;
@@ -84,8 +138,12 @@ export interface Center {
 export interface CenterPatch {
   name?: string;
   address?: string;
+  kind?: PointKind;
   phone?: string | null;
   materials?: MaterialCategory[];
+  urgentNeeds?: MaterialCategory[];
+  notReceiving?: MaterialCategory[];
+  operational?: OperationalStatus;
   schedule?: string;
   lat?: number;
   lng?: number;
@@ -103,6 +161,8 @@ export interface CenterPatch {
 export interface CenterInput {
   name: string;
   address: string;
+  /** Qué es el punto. Si se omite, el servidor asume `"acopio"`. */
+  kind?: PointKind;
   phone?: string | null;
   materials: MaterialCategory[];
   schedule: string;
@@ -134,6 +194,8 @@ export interface MapMarker {
   lng: number;
   title: string;
   status: VerificationStatus;
+  /** Determina el icono del pin (acopio, albergue, brigada médica, agua). */
+  kind: PointKind;
 }
 
 /**

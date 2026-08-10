@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Red de Acopio">
+  <rect width="512" height="512" rx="112" fill="#059669"/>
+  <!-- Pin de ubicación: la metáfora central de la app -->
+  <path d="M256 104c-66 0-119 53-119 119 0 84 103 176 113 185a9 9 0 0 0 12 0c10-9 113-101 113-185 0-66-53-119-119-119z" fill="#ffffff"/>
+  <circle cx="256" cy="221" r="46" fill="#059669"/>
+</svg>

@@ -8,22 +8,22 @@ const FEATURES = [
   {
     emoji: "📍",
     title: "Tu ubicación, tu mapa",
-    text: "Con un toque, ordena los centros por cercanía y ve cuál tienes más a la mano.",
+    text: "Con un toque, el mapa abre en tu ciudad y ordena los puntos por cercanía.",
   },
   {
-    emoji: "🛡️",
-    title: "Datos verificados",
-    text: "Los centros oficiales de acopiove.org aparecen claramente marcados como verificados.",
+    emoji: "🏠",
+    title: "Albergues, no solo acopios",
+    text: "Dónde dormir, dónde atenderse y dónde conseguir agua, además de dónde donar.",
   },
   {
     emoji: "📱",
-    title: "Pensado para el móvil",
-    text: "Rápido y ligero. Funciona bien incluso con conexión lenta o datos limitados.",
+    title: "Funciona sin buena señal",
+    text: "Ligera y con datos guardados en el teléfono: sigue mostrando los puntos aunque se caiga la red.",
   },
   {
-    emoji: "🧭",
-    title: "Filtra por material",
-    text: "Alimentos, agua, medicamentos, aseo, ropa… encuentra dónde llevar justo lo que tienes.",
+    emoji: "🚫",
+    title: "Evita los puntos saturados",
+    text: "Cada punto indica qué necesita con urgencia y qué pidió no seguir recibiendo.",
   },
   {
     emoji: "🔌",
@@ -33,7 +33,7 @@ const FEATURES = [
   {
     emoji: "🙌",
     title: "De la comunidad",
-    text: "¿Conoces un centro? Recomiéndalo en segundos y ayuda a que más gente lo encuentre.",
+    text: "¿Conoces un albergue o un acopio? Recomiéndalo en segundos y ayuda a que más gente lo encuentre.",
   },
 ] as const;
 

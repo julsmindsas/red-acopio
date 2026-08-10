@@ -1,0 +1,45 @@
+{
+  "name": "Red de Acopio — Sismo Colombia 2026",
+  "short_name": "Red de Acopio",
+  "description": "Albergues, centros de acopio, brigadas médicas y puntos de agua tras el sismo del 10 de agosto de 2026 en Colombia.",
+  "start_url": "/mapa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "categories": ["navigation", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Busco dónde dormir",
+      "short_name": "Albergues",
+      "url": "/mapa?necesito=refugio"
+    },
+    {
+      "name": "Quiero donar",
+      "short_name": "Acopios",
+      "url": "/mapa?necesito=donar"
+    },
+    {
+      "name": "Cómo ayudar ahora",
+      "short_name": "Ayuda",
+      "url": "/ayuda"
+    }
+  ]
+}

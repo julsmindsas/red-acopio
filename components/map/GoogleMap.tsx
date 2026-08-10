@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import type { MapViewProps, VerificationStatus } from '@/lib/types';
-import { MEDELLIN_CENTER, DEFAULT_ZOOM } from '@/lib/constants';
+import { DEFAULT_CITY, DEFAULT_ZOOM } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
 // Tipos mínimos de Google Maps
@@ -103,7 +103,7 @@ export default function GoogleMap({
   userLocation,
   selectedId,
   onSelect,
-  center = MEDELLIN_CENTER,
+  center = DEFAULT_CITY.center,
   zoom = DEFAULT_ZOOM,
   className,
 }: MapViewProps) {
@@ -231,6 +231,13 @@ export default function GoogleMap({
     if (!mapReady || !mapRef.current || !userLocation) return;
     mapRef.current.panTo({ lat: userLocation.lat, lng: userLocation.lng });
   }, [mapReady, userLocation]);
+
+  // Acompaña el cambio de ciudad activa (el `center` inicial solo aplica al
+  // construir el mapa, igual que en Leaflet).
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    mapRef.current.panTo({ lat: center.lat, lng: center.lng });
+  }, [mapReady, center]);
 
   if (error) {
     return (

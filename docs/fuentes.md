@@ -6,15 +6,63 @@
 > **URL**. Lo aproximado se marca como aproximado; lo no confirmado queda como
 > `sin_verificar`. Nada se inventa.
 
-**Fecha de consulta:** 2026-06-29
-**Herramientas usadas:** búsqueda y descarga web (WebSearch / WebFetch) +
-geocodificación con Nominatim (OpenStreetMap).
-**Resultado:** 9 centros reales curados en `data/scraped/curados.json`, todos en
-estado `sin_verificar`. **0 `verificado`** (ver “¿Por qué ninguno es verificado?”).
+> **Emergencia activa: sismo de Chocó del 10 de agosto de 2026.** Las secciones
+> marcadas como *(archivo)* corresponden a la emergencia anterior (terremotos de
+> Venezuela, junio de 2026) y se conservan por transparencia histórica; sus
+> fuentes **ya no están activas** en el scraper.
 
 ---
 
-## 1. Contexto
+## 0. Emergencia activa — sismo de Colombia (10 de agosto de 2026)
+
+**Fecha de consulta:** 2026-08-10
+**Contexto:** sismo de magnitud **7,4**, epicentro en **San José del Palmar
+(Chocó)** a las 07:34 (hora de Bogotá), profundidad ~93 km. Afectación grave en
+**Manizales** (municipio más golpeado), **Pereira**, **Armenia**, **Cali** y
+**Quibdó**. La Alcaldía de Manizales habilitó albergues temporales el mismo día.
+
+### Fuentes activas
+
+| Fuente | Adaptador | Qué aporta | Estado |
+|--------|-----------|------------|--------|
+| Semana — declaraciones del alcalde de Manizales ([nota](https://www.semana.com/nacion/articulo/alcalde-de-manizales-reporta-dos-personas-muertas-mas-de-10-edificios-colapsados-y-muchas-viviendas-afectadas-estamos-atendiendo-este-desastre/202623/)) | `semana-manizales.ts` | 3 albergues (Coliseo Mayor, Coliseo Menor, coliseo de Aranjuez) | `sin_verificar` |
+| Alcaldías de Manizales, Pereira y Cali; Gobernación del Chocó; UNGRD | `portales-oficiales.ts` | **0 puntos**: monitorea los portales y reporta publicaciones sobre acopio/albergues para curarlas a mano | — |
+
+### Qué NO se encontró (y por qué no hay más puntos)
+
+Al día del sismo, **ninguna alcaldía ni la UNGRD había publicado un listado de
+centros de acopio** para esta emergencia. Escribir un parser contra páginas que
+aún no existen habría producido datos inventados, así que el adaptador
+`portales-oficiales` se limita a vigilar y avisar. En la primera corrida:
+
+- Alcaldía de Manizales, Alcaldía de Cali, Gobernación del Chocó: sin publicaciones relevantes.
+- Alcaldía de Pereira: responde **HTTP 403** al scraper (bloqueo de bots).
+- UNGRD: no respondió a la descarga automática.
+
+### Precisión de la geocodificación
+
+| Punto | Precisión | Detalle |
+|-------|-----------|---------|
+| Coliseo Mayor | Punto exacto (POI) | Existe en OpenStreetMap |
+| Coliseo Menor | Punto exacto (POI) | Existe en OpenStreetMap |
+| Coliseo de Aranjuez | **Aproximada** | No figura en OSM: se usa el centroide del barrio Aranjuez y se advierte en las notas |
+
+### Canales oficiales de ayuda
+
+Los canales de emergencia, donación y búsqueda de familiares que muestra
+`/ayuda` viven en `lib/emergency-help.ts`, con la misma disciplina: cada uno
+declara su fuente y si pudo **confirmarse en el dominio oficial** de la
+organización. **No se publica ningún número de cuenta bancaria**: al consultar,
+distintos medios reportaban números diferentes para la Cruz Roja Colombiana y
+ninguno aparecía en su sitio oficial, así que se enlaza su pasarela de donación.
+
+---
+
+## 1. Contexto *(archivo — emergencia de Venezuela)*
+
+**Fecha de consulta:** 2026-06-29
+**Resultado:** 9 centros curados, todos `sin_verificar`.
+
 
 El 24 de junio de 2026, dos terremotos (magnitudes **7,2 Mw** y **7,5 Mw**,
 con epicentros cerca de San Felipe / Yumare, estado Yaracuy) golpearon el norte
@@ -27,7 +75,7 @@ Fuente del contexto: Wikipedia — *Terremotos de Venezuela de 2026*
 
 ---
 
-## 2. Centros incluidos en `curados.json` (9)
+## 2. Centros de la emergencia de Venezuela *(archivo)*
 
 Todos provienen de **medios de prensa** (no de una página oficial de gobierno o
 Cruz Roja que los liste), por eso quedan en `sin_verificar`. El teléfono quedó

@@ -35,7 +35,7 @@ const API_PREFIX = `${BASE_URL}/api/v1`;
 export const metadata: Metadata = {
   title: "API de Red de Acopio — Documentación para desarrolladores",
   description:
-    "API REST pública, gratuita y abierta de centros de acopio en Colombia. OpenAPI 3.1, CORS habilitado, licencia MIT. Datos comunitarios con atribución a acopiove.org.",
+    "API REST pública, gratuita y abierta de albergues y centros de acopio del sismo de Colombia (10-ago-2026). OpenAPI 3.1, CORS habilitado, licencia MIT.",
 };
 
 // --- Ejemplos de código (Inicio rápido) ------------------------------------
@@ -45,56 +45,60 @@ const QUICKSTART_SAMPLES = [
     id: "curl",
     label: "cURL",
     lang: "bash",
-    code: `# Listar todos los centros de acopio (JSON)
+    code: `# Listar todos los puntos de ayuda (JSON)
 curl ${API_PREFIX}/centers`,
   },
   {
     id: "fetch",
     label: "JavaScript",
     lang: "javascript",
-    code: `// Centros verificados en Medellín
+    code: `// Albergues activos en Manizales
 const res = await fetch(
-  "${API_PREFIX}/centers?city=Medellín&status=verificado"
+  "${API_PREFIX}/centers?city=Manizales&kind=albergue"
 );
 const { attribution, total, items } = await res.json();
 
-console.log(\`\${total} centros · \${attribution}\`);
-for (const centro of items) {
-  console.log(centro.name, "—", centro.address);
+console.log(\`\${total} puntos · \${attribution}\`);
+for (const punto of items) {
+  console.log(punto.name, "—", punto.address);
 }`,
   },
   {
     id: "filtro",
     label: "Filtros",
     lang: "bash",
-    code: `# Combina filtros: solo fuente oficial que reciba alimentos
-curl "${API_PREFIX}/centers?source=official&material=alimentos"
+    code: `# Acopios que aún reciben (excluye los saturados y cerrados)
+curl "${API_PREFIX}/centers?kind=acopio&operational=recibiendo"
 
-# Búsqueda de texto libre (nombre, dirección, notas…)
-curl "${API_PREFIX}/centers?q=cruz%20roja"`,
+# Puntos que reciben agua en el Eje Cafetero
+curl "${API_PREFIX}/centers?material=agua&city=Pereira"
+
+# Búsqueda de texto libre (nombre y dirección)
+curl "${API_PREFIX}/centers?q=coliseo"`,
   },
 ];
 
 // Respuesta de ejemplo del listado, para que se vea la forma del JSON.
 const LIST_RESPONSE_SAMPLE = `{
-  "attribution": "Datos de centros oficiales por acopiove.org",
+  "attribution": "Puntos de ayuda del sismo de Colombia del 10 de agosto de 2026…",
   "total": 128,
   "items": [
     {
-      "id": "acopio-42",
-      "name": "Parroquia San José",
-      "address": "Cra. 50 #45-12, La Candelaria",
-      "phone": "+57 604 000 0000",
-      "materials": ["alimentos", "agua", "aseo"],
-      "schedule": "Lun-Sáb 8:00am - 6:00pm",
-      "lat": 6.2476,
-      "lng": -75.5658,
-      "city": "Medellín",
+      "id": "albergue-coliseo-mayor-manizales",
+      "name": "Albergue temporal — Coliseo Mayor de Manizales",
+      "address": "Coliseo Mayor, Carrera 24, barrio Palogrande, Manizales",
+      "kind": "albergue",
+      "phone": null,
+      "materials": [],
+      "operational": "recibiendo",
+      "schedule": "Habilitado tras el sismo del 10 de agosto de 2026",
+      "lat": 5.0580013,
+      "lng": -75.4884494,
+      "city": "Manizales",
       "country": "Colombia",
-      "notes": "Fuente: acopiove.org",
-      "source": "acopiove.org",
-      "status": "verificado",
-      "readOnly": true,
+      "notes": "Geocodificación: punto exacto (POI) vía Nominatim/OSM…",
+      "source": "https://www.semana.com/nacion/articulo/…",
+      "status": "sin_verificar",
       "createdAt": "2025-06-29T18:00:00.000Z",
       "updatedAt": "2025-06-29T18:00:00.000Z"
     }
@@ -117,14 +121,34 @@ const POST_SAMPLE = `curl -X POST ${API_PREFIX}/centers \\
 
 // Documentación del modelo Center (refleja lib/types.ts). Estática a propósito.
 const CENTER_FIELDS: { name: string; type: string; desc: string }[] = [
-  { name: "id", type: "string", desc: "Identificador único del centro." },
-  { name: "name", type: "string", desc: "Nombre del centro de acopio." },
+  { name: "id", type: "string", desc: "Identificador único del punto." },
+  { name: "name", type: "string", desc: "Nombre del punto de ayuda." },
   { name: "address", type: "string", desc: "Dirección legible." },
+  {
+    name: "kind",
+    type: "enum",
+    desc: "acopio · albergue · brigada_medica · punto_agua.",
+  },
   { name: "phone", type: "string | null", desc: "Teléfono de contacto." },
   {
     name: "materials",
     type: "string[]",
-    desc: "Categorías de material que recibe (ver tabla de valores).",
+    desc: "Categorías de material que recibe (vacío en albergues y brigadas).",
+  },
+  {
+    name: "urgentNeeds",
+    type: "string[]",
+    desc: "Lo que más necesita ahora (subconjunto de materials).",
+  },
+  {
+    name: "notReceiving",
+    type: "string[]",
+    desc: "Lo que pidió NO seguir recibiendo, normalmente por saturación.",
+  },
+  {
+    name: "operational",
+    type: "enum",
+    desc: "recibiendo · lleno · cerrado · desconocido (estado de ahora mismo).",
   },
   { name: "schedule", type: "string", desc: "Horario en texto libre." },
   { name: "lat", type: "number", desc: "Latitud (grados decimales)." },
@@ -135,7 +159,7 @@ const CENTER_FIELDS: { name: string; type: string; desc: string }[] = [
   {
     name: "source",
     type: "string | null",
-    desc: "Origen del dato: acopiove.org, reporte-ciudadano, etc.",
+    desc: "Origen del dato: URL de la fuente pública, reporte-ciudadano, api, etc.",
   },
   {
     name: "status",
@@ -276,29 +300,25 @@ export default function ApiDocsPage() {
             <div className="mt-4 grid gap-4 text-pretty leading-relaxed text-foreground/75 sm:text-lg">
               <p>
                 <strong className="text-foreground">Red de Acopio</strong> es un
-                proyecto comunitario y de código abierto que mapea centros de
-                acopio activos para coordinar donaciones de ayuda humanitaria.
-                Esta API expone esos datos para que cualquier persona los
-                consuma e integre libremente.
+                proyecto comunitario y de código abierto que mapea los puntos de
+                ayuda del sismo del 10 de agosto de 2026 en Colombia: albergues,
+                centros de acopio, brigadas médicas y puntos de agua. Esta API
+                expone esos datos para que cualquier persona los consuma e
+                integre libremente.
               </p>
               <p>
-                Los centros provienen de una{" "}
-                <strong className="text-foreground">fuente híbrida</strong>: los
-                datos oficiales y verificados son cortesía de{" "}
-                <a
-                  href="https://acopiove.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-brand-700 underline decoration-brand-300 underline-offset-2 hover:text-brand-800"
-                >
-                  acopiove.org
-                </a>
-                , complementados con aportes locales reportados por la
-                comunidad. Cada respuesta incluye un campo{" "}
+                Los datos son{" "}
+                <strong className="text-foreground">trazables</strong>: cada
+                punto lleva en{" "}
                 <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-sm text-brand-700">
-                  attribution
+                  source
                 </code>{" "}
-                con el crédito correspondiente.
+                la URL pública de donde salió y en{" "}
+                <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-sm text-brand-700">
+                  status
+                </code>{" "}
+                su nivel de verificación. Si los reutilizas, conserva ambos: en
+                una emergencia, un dato sin procedencia es un riesgo.
               </p>
             </div>
 
@@ -316,9 +336,9 @@ export default function ApiDocsPage() {
                   body: "Consúmela directamente desde el navegador, sin proxy.",
                 },
                 {
-                  icon: "🤝",
-                  title: "Con atribución",
-                  body: "Datos oficiales acreditados a acopiove.org en cada respuesta.",
+                  icon: "🔗",
+                  title: "Con procedencia",
+                  body: "Cada punto incluye la URL de su fuente y su estado de verificación.",
                 },
               ].map((c) => (
                 <div
@@ -641,17 +661,9 @@ export default function ApiDocsPage() {
                   <span aria-hidden="true">🤝</span> Red de Acopio
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-foreground/65">
-                  Datos de centros oficiales por{" "}
-                  <a
-                    href="https://acopiove.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-brand-700 hover:underline"
-                  >
-                    acopiove.org
-                  </a>
-                  , complementados con reportes de la comunidad. Proyecto abierto
-                  bajo licencia MIT.
+                  Puntos de ayuda del sismo del 10 de agosto de 2026 en Colombia,
+                  recopilados de fuentes públicas y reportes de la comunidad.
+                  Proyecto abierto bajo licencia MIT.
                 </p>
               </div>
 

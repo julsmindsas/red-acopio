@@ -1,7 +1,12 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import { STATUS_META } from "@/lib/constants";
+import {
+  MATERIAL_LABELS,
+  OPERATIONAL_META,
+  POINT_KIND_META,
+  STATUS_META,
+} from "@/lib/constants";
 import { formatDistance } from "@/lib/geo";
 import type { CenterWithDistance } from "@/lib/types";
 import MaterialChips from "./MaterialChips";
@@ -65,6 +70,10 @@ export default function CenterCard({
 }: CenterCardProps) {
   const distance = formatDistance(center.distanceKm);
   const isVerified = center.status === "verificado";
+  const kindMeta = POINT_KIND_META[center.kind];
+  const opMeta = OPERATIONAL_META[center.operational];
+  const urgentNeeds = center.urgentNeeds ?? [];
+  const notReceiving = center.notReceiving ?? [];
 
   // Origen del dato para la atribución:
   //  - oficial: proviene de la red acopiove.org (o cualquier fuente read-only).
@@ -100,7 +109,22 @@ export default function CenterCard({
         </div>
 
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          {/* Qué es el punto: lo primero que necesita saber quien busca refugio */}
+          <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-foreground/75">
+            <span aria-hidden="true">{kindMeta.emoji}</span>
+            {kindMeta.label}
+          </span>
           <StatusBadge status={center.status} />
+          {/* Estado operativo: solo cuando aporta información */}
+          {center.operational !== "desconocido" && (
+            <span
+              title={opMeta.description}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${opMeta.badgeClass}`}
+            >
+              <span aria-hidden="true">{opMeta.emoji}</span>
+              {opMeta.label}
+            </span>
+          )}
           {center.city && (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground/55">
               <span aria-hidden="true">🏙️</span>
@@ -123,9 +147,37 @@ export default function CenterCard({
           {center.schedule}
         </p>
 
-        <div className="mt-3">
-          <MaterialChips materials={center.materials} />
-        </div>
+        {center.materials.length > 0 && (
+          <div className="mt-3">
+            <MaterialChips materials={center.materials} />
+          </div>
+        )}
+
+        {/* Lo que más falta ahora: dirige las donaciones a donde hacen falta */}
+        {urgentNeeds.length > 0 && (
+          <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-lg bg-brand-50 px-3 py-2 text-xs font-medium text-brand-900">
+            <span aria-hidden="true">🔺</span>
+            <span className="font-bold">Urge:</span>
+            {urgentNeeds.map((m) => MATERIAL_LABELS[m]).join(", ")}
+          </p>
+        )}
+
+        {/* Lo que pidieron NO seguir llevando: evita saturar más el punto */}
+        {notReceiving.length > 0 && (
+          <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-900">
+            <span aria-hidden="true">🚫</span>
+            <span className="font-bold">No llevar:</span>
+            {notReceiving.map((m) => MATERIAL_LABELS[m]).join(", ")}
+          </p>
+        )}
+
+        {/* Saturación: el aviso que evita el colapso logístico */}
+        {center.operational === "lleno" && (
+          <p className="mt-2 rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-medium leading-relaxed text-orange-900">
+            Este punto reportó estar <strong>saturado</strong>. Busca otro
+            cercano antes de llevar donaciones.
+          </p>
+        )}
 
         {/* Aviso de precaución para centros no verificados */}
         {!isVerified && (

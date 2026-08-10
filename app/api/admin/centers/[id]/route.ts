@@ -10,8 +10,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifySessionToken, ADMIN_COOKIE } from "@/lib/auth";
 import { getRepository } from "@/lib/db";
-import { centerInputSchema, formatZodErrors } from "@/lib/validation";
-import { MATERIAL_CATEGORIES, VERIFICATION_STATUSES } from "@/lib/types";
+import { centerFieldsSchema, formatZodErrors } from "@/lib/validation";
+import {
+  MATERIAL_CATEGORIES,
+  OPERATIONAL_STATUSES,
+  VERIFICATION_STATUSES,
+} from "@/lib/types";
 import type { CenterPatch } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -20,10 +24,15 @@ export const dynamic = "force-dynamic";
 // Esquema de validación para PATCH (todos los campos opcionales)
 // Extiende centerInputSchema.partial() con los campos exclusivos del panel admin.
 // ---------------------------------------------------------------------------
-const centerPatchSchema = centerInputSchema.partial().extend({
+const centerPatchSchema = centerFieldsSchema.partial().extend({
   city:    z.string().trim().max(100).nullable().optional(),
   country: z.string().trim().max(100).nullable().optional(),
   status:  z.enum(VERIFICATION_STATUSES).optional(),
+  // Campos operativos: son los que más cambian durante una emergencia, así que
+  // el panel debe poder actualizarlos sin tocar el resto del registro.
+  operational:  z.enum(OPERATIONAL_STATUSES).optional(),
+  urgentNeeds:  z.array(z.enum(MATERIAL_CATEGORIES)).optional(),
+  notReceiving: z.array(z.enum(MATERIAL_CATEGORIES)).optional(),
 });
 
 // Tipado inferido compatible con CenterPatch

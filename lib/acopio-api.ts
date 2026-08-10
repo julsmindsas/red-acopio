@@ -16,6 +16,22 @@ const API_BASE =
   process.env.ACOPIO_API_BASE || "https://api.terremotovenezuela.app";
 const COUNTRY = process.env.ACOPIO_COUNTRY || "Colombia";
 
+/**
+ * Interruptor de la fuente oficial externa. **Apagado por defecto** desde el
+ * sismo de Chocó (10-ago-2026).
+ *
+ * Motivo: los puntos de acopiove.org son sitios en Colombia que recogen ayuda
+ * *para Venezuela*. Mostrarlos en un mapa cuya pregunta ahora es "¿dónde llevo
+ * ayuda para los damnificados del sismo colombiano?" enviaría a la gente a
+ * lugares que no atienden esta emergencia — justo el error que el proyecto se
+ * comprometió a no cometer.
+ *
+ * El código se conserva íntegro (incluido el snapshot persistente): basta
+ * `ACOPIO_API_ENABLED=true` para reactivarlo si esa red empieza a publicar
+ * puntos de la emergencia colombiana.
+ */
+const ENABLED = process.env.ACOPIO_API_ENABLED === "true";
+
 /** Mapea las categorías de la API oficial (en inglés) a nuestras MaterialCategory. */
 const ACCEPTS_MAP: Record<string, MaterialCategory> = {
   food: "alimentos",
@@ -80,8 +96,12 @@ function toCenter(a: OfficialAcopio, nowIso: string): Center | null {
     id: `acopio-${a.id}`,
     name: a.name,
     address: a.address || a.city || "Colombia",
+    // La API oficial solo publica centros de acopio; no maneja albergues.
+    kind: "acopio",
     phone: a.contact || null,
     materials: mapMaterials(a.accepts),
+    // No expone estado operativo, y no lo vamos a suponer.
+    operational: "desconocido",
     schedule: a.schedule || "Horario no publicado",
     lat: a.lat,
     lng: a.lng,
@@ -169,6 +189,8 @@ async function loadSnapshot(): Promise<Center[]> {
 export async function fetchOfficialCenters(
   opts: { force?: boolean } = {},
 ): Promise<Center[]> {
+  if (!ENABLED) return [];
+
   const now = Date.now();
   if (!opts.force && cache && now - cache.at < CACHE_TTL_MS) {
     return cache.data;

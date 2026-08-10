@@ -6,15 +6,20 @@
  *
  * Solo se listan fuentes con datos REALES extraídos de páginas públicas (con su
  * URL). La plantilla `_template.ts` NO se incluye a propósito (es solo guía).
+ *
+ * EMERGENCIA ACTIVA: sismo de Chocó del 10 de agosto de 2026.
+ * Los adaptadores de la emergencia de Venezuela (`eltiempo-medellin`,
+ * `pulzo-colombia`, `laika-mascotas`) se conservan en disco como archivo
+ * histórico, pero están FUERA del registro: sus centros recogían ayuda para
+ * Venezuela y publicarlos hoy mandaría a la gente a puntos que no atienden esta
+ * emergencia. Para reactivarlos, vuelve a importarlos aquí.
  */
 
 import type { Source } from "./types";
-import { elTiempoMedellin } from "./eltiempo-medellin";
-import { pulzoColombia } from "./pulzo-colombia";
-import { laikaMascotas } from "./laika-mascotas";
+import { semanaManizales } from "./semana-manizales";
+import { portalesOficiales } from "./portales-oficiales";
 
 export const sources: Source[] = [
-  elTiempoMedellin, // 8 centros (Medellín, Itagüí, Bello, Envigado) — prensa, sin_verificar
-  pulzoColombia, //    1 centro (El Minuto de Dios, Medellín) — prensa, sin_verificar
-  laikaMascotas, //    3 centros (mascotas, campaña "Patitas por Venezuela", Medellín/Rionegro) — prensa, sin_verificar
+  semanaManizales, //   3 albergues (Manizales) — prensa citando a la Alcaldía, sin_verificar
+  portalesOficiales, // 0 centros: monitorea alcaldías y UNGRD y reporta pistas para curar a mano
 ];

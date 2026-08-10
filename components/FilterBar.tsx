@@ -4,10 +4,16 @@ import {
   MATERIAL_CATEGORIES,
   MATERIAL_EMOJI,
   MATERIAL_LABELS,
+  POINT_KINDS,
+  POINT_KIND_META,
   STATUS_META,
   VERIFICATION_STATUSES,
 } from "@/lib/constants";
-import type { MaterialCategory, VerificationStatus } from "@/lib/types";
+import type {
+  MaterialCategory,
+  PointKind,
+  VerificationStatus,
+} from "@/lib/types";
 
 /*
  * Barra de filtros — diseñada para ser EXTENSIBLE.
@@ -24,8 +30,10 @@ import type { MaterialCategory, VerificationStatus } from "@/lib/types";
  */
 
 interface FilterBarProps {
+  kindFilter: Set<PointKind>;
   materialFilter: Set<MaterialCategory>;
   statusFilter: Set<VerificationStatus>;
+  onToggleKind: (k: PointKind) => void;
   onToggleMaterial: (m: MaterialCategory) => void;
   onToggleStatus: (s: VerificationStatus) => void;
   onClear: () => void;
@@ -60,25 +68,29 @@ function Chip({
 }
 
 export default function FilterBar({
+  kindFilter,
   materialFilter,
   statusFilter,
+  onToggleKind,
   onToggleMaterial,
   onToggleStatus,
   onClear,
   resultCount,
 }: FilterBarProps) {
-  const hasActiveFilters = materialFilter.size > 0 || statusFilter.size > 0;
+  const hasActiveFilters =
+    kindFilter.size > 0 || materialFilter.size > 0 || statusFilter.size > 0;
+
+  // Los materiales solo tienen sentido si se están mirando centros de acopio:
+  // quien filtró "albergue" busca dónde dormir, no qué donar.
+  const showMaterials = kindFilter.size === 0 || kindFilter.has("acopio");
 
   return (
-    <section
-      aria-label="Filtros de centros de acopio"
-      className="flex flex-col gap-3"
-    >
-      {/* Grupo: materiales */}
+    <section aria-label="Filtros de puntos de ayuda" className="flex flex-col gap-3">
+      {/* Grupo: tipo de punto — el filtro más importante de la emergencia */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
           <h2 className="px-0.5 text-xs font-semibold uppercase tracking-wide text-foreground/55">
-            ¿Qué quieres donar?
+            ¿Qué estás buscando?
           </h2>
           {hasActiveFilters && (
             <button
@@ -90,6 +102,25 @@ export default function FilterBar({
             </button>
           )}
         </div>
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {POINT_KINDS.map((k) => (
+            <Chip
+              key={k}
+              active={kindFilter.has(k)}
+              onClick={() => onToggleKind(k)}
+            >
+              <span aria-hidden="true">{POINT_KIND_META[k].emoji}</span>
+              {POINT_KIND_META[k].plural}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      {/* Grupo: materiales */}
+      <div className={`flex flex-col gap-1.5 ${showMaterials ? "" : "hidden"}`}>
+        <h2 className="px-0.5 text-xs font-semibold uppercase tracking-wide text-foreground/55">
+          ¿Qué quieres donar?
+        </h2>
         {/* Fila desplazable horizontalmente en móvil para no consumir alto */}
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {MATERIAL_CATEGORIES.map((m) => (
@@ -126,9 +157,9 @@ export default function FilterBar({
       {/* Feedback en vivo del número de resultados (lectores de pantalla incluidos) */}
       <p aria-live="polite" className="px-0.5 text-xs text-foreground/60">
         {resultCount === 0
-          ? "No hay centros que coincidan con los filtros."
+          ? "No hay puntos que coincidan con los filtros."
           : `Mostrando ${resultCount} ${
-              resultCount === 1 ? "centro" : "centros"
+              resultCount === 1 ? "punto" : "puntos"
             }.`}
       </p>
     </section>

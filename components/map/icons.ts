@@ -10,7 +10,8 @@
  */
 
 import L from 'leaflet';
-import type { VerificationStatus } from '@/lib/types';
+import { POINT_KIND_META } from '@/lib/constants';
+import type { PointKind, VerificationStatus } from '@/lib/types';
 
 // Paleta coherente con STATUS_META en lib/constants.ts:
 //   verificado   → esmeralda (emerald)
@@ -23,24 +24,39 @@ const STATUS_COLORS: Record<VerificationStatus, { bg: string; border: string }> 
 };
 
 /**
- * Crea un `L.DivIcon` circular con el color del estado de verificación.
- * Se llama una vez por marcador en cada render de LeafletMap.
+ * Crea un `L.DivIcon` para un punto del mapa.
+ *
+ * Dos dimensiones en un solo pin, sin que compitan entre sí:
+ *   - el COLOR sigue indicando la confianza en el dato (estado de verificación);
+ *   - el EMOJI indica qué es el punto (acopio, albergue, brigada, agua).
+ *
+ * Así, quien busca dónde dormir localiza los 🏠 de un vistazo sin perder el
+ * aviso de que un punto está sin verificar.
  */
-export function createStatusIcon(status: VerificationStatus): L.DivIcon {
+export function createPointIcon(
+  status: VerificationStatus,
+  kind: PointKind = 'acopio',
+): L.DivIcon {
   const { bg, border } = STATUS_COLORS[status];
+  const emoji = POINT_KIND_META[kind].emoji;
   return L.divIcon({
     className: '',
     html: `<div style="
-      width: 22px;
-      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      font-size: 13px;
+      line-height: 1;
       background: ${bg};
       border: 2.5px solid ${border};
       border-radius: 50%;
       box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-    "></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-    popupAnchor: [0, -14],
+    ">${emoji}</div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+    popupAnchor: [0, -16],
   });
 }
 

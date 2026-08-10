@@ -37,6 +37,7 @@ const materialCategoryEnum: Schema = {
     "bebes",
     "cobijas",
     "herramientas",
+    "mascotas",
     "otros",
   ],
   description:
@@ -45,7 +46,30 @@ const materialCategoryEnum: Schema = {
     "ropa=prendas de vestir, medicamentos=medicamentos y suministros médicos, " +
     "aseo=productos de higiene personal, bebes=pañales/fórmula/ropa infantil, " +
     "cobijas=frazadas y ropa de cama, herramientas=herramientas de trabajo, " +
+    "mascotas=alimento y cuidado de animales, " +
     "otros=cualquier otro insumo humanitario.",
+};
+
+const pointKindEnum: Schema = {
+  type: "string",
+  enum: ["acopio", "albergue", "brigada_medica", "punto_agua"],
+  default: "acopio",
+  description:
+    "Tipo de punto de ayuda. " +
+    "acopio=recibe donaciones, albergue=alojamiento temporal para damnificados, " +
+    "brigada_medica=atención médica o primeros auxilios, " +
+    "punto_agua=distribución de agua potable.",
+};
+
+const operationalStatusEnum: Schema = {
+  type: "string",
+  enum: ["recibiendo", "lleno", "cerrado", "desconocido"],
+  default: "desconocido",
+  description:
+    "Estado operativo del punto en este momento (distinto de `status`, que habla " +
+    "de la confianza en el dato). recibiendo=abierto y con capacidad, " +
+    "lleno=abierto pero saturado (no llevar más por ahora), cerrado=no está " +
+    "operando, desconocido=sin información reciente.",
 };
 
 const verificationStatusEnum: Schema = {
@@ -60,10 +84,13 @@ const verificationStatusEnum: Schema = {
 
 const centerSchema: Schema = {
   type: "object",
-  description: "Un centro de acopio de ayuda humanitaria.",
+  description:
+    "Un punto de ayuda humanitaria: centro de acopio, albergue, brigada médica " +
+    "o punto de agua (ver el campo `kind`).",
   required: [
-    "id", "name", "address", "phone", "materials", "schedule",
-    "lat", "lng", "notes", "source", "status", "createdAt", "updatedAt",
+    "id", "name", "address", "kind", "phone", "materials", "schedule",
+    "lat", "lng", "notes", "source", "status", "operational",
+    "createdAt", "updatedAt",
   ],
   properties: {
     id: {
@@ -79,9 +106,10 @@ const centerSchema: Schema = {
     },
     address: {
       type: "string",
-      description: "Dirección física del centro.",
-      example: "Carrera 76 # 43A-10, Medellín",
+      description: "Dirección física del punto.",
+      example: "Coliseo Mayor, Carrera 24, Manizales",
     },
+    kind: { $ref: "#/components/schemas/PointKind" },
     phone: {
       type: ["string", "null"],
       description: "Teléfono de contacto. null si no se conoce.",
@@ -90,9 +118,26 @@ const centerSchema: Schema = {
     materials: {
       type: "array",
       items: { $ref: "#/components/schemas/MaterialCategory" },
-      description: "Lista de tipos de materiales que el centro acepta.",
+      description:
+        "Materiales que el punto acepta. Vacío en albergues, brigadas médicas y " +
+        "puntos de agua, que no reciben donaciones.",
       example: ["alimentos", "ropa", "medicamentos"],
     },
+    urgentNeeds: {
+      type: "array",
+      items: { $ref: "#/components/schemas/MaterialCategory" },
+      description:
+        "Lo que el punto más necesita ahora. Subconjunto de `materials`.",
+      example: ["agua", "bebes"],
+    },
+    notReceiving: {
+      type: "array",
+      items: { $ref: "#/components/schemas/MaterialCategory" },
+      description:
+        "Lo que el punto pidió NO seguir recibiendo, normalmente por saturación.",
+      example: ["ropa"],
+    },
+    operational: { $ref: "#/components/schemas/OperationalStatus" },
     schedule: {
       type: "string",
       description: "Horario de atención en texto libre.",
@@ -155,23 +200,24 @@ const centerSchema: Schema = {
 
 const centerInputSchema: Schema = {
   type: "object",
-  description: "Datos que envía un ciudadano al reportar un nuevo centro de acopio.",
-  required: ["name", "address", "materials", "schedule", "lat", "lng"],
+  description: "Datos que envía un ciudadano al reportar un nuevo punto de ayuda.",
+  required: ["name", "address", "schedule", "lat", "lng"],
   properties: {
     name: {
       type: "string",
       minLength: 3,
       maxLength: 120,
-      description: "Nombre del centro de acopio.",
-      example: "Bodega Comunitaria Laureles",
+      description: "Nombre del punto.",
+      example: "Albergue temporal Coliseo Menor",
     },
     address: {
       type: "string",
       minLength: 5,
       maxLength: 200,
-      description: "Dirección física del centro.",
-      example: "Calle 33 # 74-22, Medellín",
+      description: "Dirección física del punto.",
+      example: "Avenida Lindsay, Manizales",
     },
+    kind: { $ref: "#/components/schemas/PointKind" },
     phone: {
       type: ["string", "null"],
       description: "Teléfono de contacto (opcional). Acepta formatos colombianos.",
@@ -180,8 +226,9 @@ const centerInputSchema: Schema = {
     materials: {
       type: "array",
       items: { $ref: "#/components/schemas/MaterialCategory" },
-      minItems: 1,
-      description: "Tipos de materiales que el centro acepta. Al menos uno.",
+      description:
+        "Materiales que el punto acepta. Obligatorio (al menos uno) solo cuando " +
+        "`kind` es `acopio`; se ignora en los demás tipos.",
       example: ["alimentos", "agua"],
     },
     schedule: {
@@ -267,7 +314,25 @@ const centerListQueryParams = [
     description:
       "Filtra por ciudad o municipio (coincidencia parcial, insensible a mayúsculas). " +
       "Busca en el campo city y en la dirección.",
-    example: "Medellín",
+    example: "Manizales",
+  },
+  {
+    name: "kind",
+    in: "query",
+    required: false,
+    schema: { $ref: "#/components/schemas/PointKind" },
+    description:
+      "Filtra por tipo de punto. Útil para pedir solo albergues o solo acopios.",
+    example: "albergue",
+  },
+  {
+    name: "operational",
+    in: "query",
+    required: false,
+    schema: { $ref: "#/components/schemas/OperationalStatus" },
+    description:
+      "Filtra por estado operativo. Por ejemplo, `recibiendo` excluye los puntos saturados o cerrados.",
+    example: "recibiendo",
   },
   {
     name: "material",
@@ -608,6 +673,8 @@ export const openapiSpec: OpenAPISpec = {
     schemas: {
       MaterialCategory: materialCategoryEnum,
       VerificationStatus: verificationStatusEnum,
+      PointKind: pointKindEnum,
+      OperationalStatus: operationalStatusEnum,
       Center: centerSchema,
       CenterInput: centerInputSchema,
       ApiError: apiErrorSchema,

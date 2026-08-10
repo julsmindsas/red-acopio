@@ -1,6 +1,12 @@
 # Red de Acopio 🧭🤝
 
-Aplicación web **mobile-first** para mapear **centros de acopio de ayuda humanitaria** y ayudar a la gente a encontrar el punto de donación más cercano. Pensada inicialmente para coordinar donaciones en **Medellín, Colombia** (apoyo a afectados por los terremotos en Venezuela), pero **genérica y reutilizable** para cualquier ciudad o emergencia.
+Aplicación web **mobile-first** para encontrar **puntos de ayuda humanitaria** cerca de ti: albergues, centros de acopio, brigadas médicas y puntos de agua.
+
+> **🚨 Emergencia activa: sismo de Colombia del 10 de agosto de 2026.**
+> Magnitud **7,4**, epicentro en **San José del Palmar (Chocó)**, 07:34 (hora de Bogotá). Afectación grave en **Manizales**, **Pereira**, **Armenia**, **Cali** y **Quibdó**.
+> La app está reorientada a esta emergencia; los datos de la anterior (terremotos de Venezuela, junio de 2026) quedan archivados en `data/centers.venezuela-2026.json`.
+
+La aplicación es **genérica y reutilizable** para cualquier ciudad o emergencia: cambiar de evento es editar `EMERGENCY` y `AFFECTED_CITIES` en `lib/constants.ts`, sembrar datos nuevos y apuntar los scrapers a otras fuentes.
 
 > **⚠️ Nota de responsabilidad sobre los datos**
 > Esta es una herramienta humanitaria real. Una dirección o teléfono equivocados envían personas a lugares equivocados. Por eso:
@@ -12,17 +18,20 @@ Aplicación web **mobile-first** para mapear **centros de acopio de ayuda humani
 
 ## ✨ Funcionalidades
 
-- 📍 **Geolocalización** del usuario (con manejo de permisos y *fallback* al centro de Medellín).
-- 🗺️ **Mapa interactivo** con pines de centros cercanos, usando **Leaflet + OpenStreetMap**.
+- 🙋 **Entrada por intención**: un toque para "busco dónde dormir", "necesito atención o agua" o "quiero donar". Los filtros finos quedan plegados para no abrumar a quien acaba de vivir un sismo.
+- 🏠 **Cuatro tipos de punto**: albergue, centro de acopio, brigada médica y punto de agua (campo `kind`).
+- 🟠 **Estado operativo** (`recibiendo` · `saturado` · `cerrado`) más **"urge"** y **"no llevar"** por punto: evita el colapso logístico de que todo el mundo lleve lo mismo a un sitio ya lleno.
+- 📍 **Geolocalización** del usuario y **mapa multi-ciudad**: abre en la ciudad afectada más cercana a quien lo consulta, con selector manual.
+- 🗺️ **Mapa interactivo** con **Leaflet + OpenStreetMap**; los pines combinan color (verificación) e icono (tipo de punto).
 - 🔁 **Fallback automático a Google Maps** si los *tiles* de OSM fallan al cargar (requiere API key opcional).
 - 📏 **Ordenamiento por distancia** (fórmula de Haversine) al usuario.
-- 🏷️ Para cada centro: **nombre, dirección, teléfono, materiales que acepta, horario y distancia**, con acciones "Llamar" y "Cómo llegar".
-- 📝 **Recomendar un centro**: formulario ciudadano con validación (cliente + servidor) compartida vía `zod`.
-- 🤝 **Fuente híbrida**: combina los centros **verificados de [acopiove.org](https://acopiove.org)** (red oficial) con aportes locales, deduplicando por cercanía — para **apoyar sin duplicar**.
-- 🛠️ **Panel administrativo** (`/admin`) para aprobar recomendaciones, editar, verificar y eliminar centros locales.
+- 🚨 **Página `/ayuda`** con canales oficiales (línea 123, UNGRD, Cruz Roja, búsqueda de familiares), cada uno marcado según se haya podido **confirmar en el sitio oficial** de la organización.
+- 📴 **PWA offline**: instalable y con service worker que guarda los últimos puntos, para zonas con la red caída. Avisa en pantalla cuando muestra datos guardados.
+- 📝 **Recomendar un punto**: formulario ciudadano con validación (cliente + servidor) compartida vía `zod`.
+- 🛠️ **Panel administrativo** (`/admin`) para aprobar recomendaciones, marcar saturación y actualizar necesidades urgentes.
 - 🔌 **API pública** (`/api/v1`) con CORS y **OpenAPI 3.1** — cualquiera puede consumirla. Docs en **`/api-docs`**.
 - 🗃️ **Base de datos simple e intercambiable** (JSON local en desarrollo, Postgres/Neon en producción).
-- 🌐 **Scraper modular** de fuentes públicas de coordinación humanitaria.
+- 🌐 **Scraper modular** de fuentes públicas, con monitor de portales oficiales que avisa cuando publican puntos nuevos.
 
 ---
 
@@ -45,8 +54,10 @@ Aplicación web **mobile-first** para mapear **centros de acopio de ayuda humani
 ```
 red-acopio/
 ├── app/
-│   ├── layout.tsx              # Layout raíz (es, metadata, viewport mobile)
-│   ├── page.tsx                # Home (Server Component): carga centros y renderiza HomeView
+│   ├── layout.tsx              # Layout raíz (es, metadata, PWA, service worker)
+│   ├── page.tsx                # Portada (landing) con entrada por intención
+│   ├── mapa/page.tsx           # Mapa de puntos; lee ?necesito= y ?material=
+│   ├── ayuda/page.tsx          # Canales oficiales (123, UNGRD, Cruz Roja, RCF)
 │   ├── reportar/page.tsx       # Página del formulario de reporte
 │   ├── globals.css             # Tema Tailwind v4 (paleta humanitaria)
 │   └── api/
@@ -66,9 +77,12 @@ red-acopio/
 │       ├── GoogleMap.tsx       # Implementación Google Maps
 │       └── useMapProvider.ts   # Hook que decide el proveedor
 ├── lib/
-│   ├── types.ts                # Contratos: Center, CenterInput, MapViewProps, etc.
-│   ├── constants.ts            # MEDELLIN_CENTER, etiquetas de materiales/estados
-│   ├── geo.ts                  # Haversine, ordenar por distancia, formatear
+│   ├── types.ts                # Contratos: Center, PointKind, OperationalStatus, etc.
+│   ├── constants.ts            # EMERGENCY, AFFECTED_CITIES, etiquetas y metadatos
+│   ├── intents.ts              # Intenciones de entrada (compartidas cliente/servidor)
+│   ├── emergency-help.ts       # Canales oficiales, con su fuente y si están confirmados
+│   ├── center-normalize.ts     # Rellena kind/operational en datos previos al sismo
+│   ├── geo.ts                  # Haversine, ciudad más cercana, formatear distancia
 │   ├── validation.ts           # Esquema zod compartido
 │   └── db/
 │       ├── repository.ts       # Interfaz CenterRepository (el "contrato" de datos)
@@ -79,8 +93,12 @@ red-acopio/
 │   ├── scrape.ts               # Orquestador del scraper (npm run scrape)
 │   ├── seed-db.ts              # Siembra Postgres desde la semilla (npm run seed)
 │   └── sources/                # Adaptadores de fuentes (pluggable)
+├── public/
+│   ├── sw.js                   # Service worker: la app abre y muestra puntos sin red
+│   └── manifest.webmanifest    # PWA instalable, con accesos directos por intención
 ├── data/
 │   ├── centers.seed.json       # Semilla versionada (datos de ejemplo/curados)
+│   ├── centers.venezuela-2026.json  # Archivo de la emergencia anterior
 │   ├── centers.local.json      # Store local mutable (git-ignored)
 │   └── scraped/                # Salida cruda del scraper (git-ignored)
 ├── docs/
@@ -114,6 +132,7 @@ Copia `.env.example` a `.env.local` y completa lo que necesites:
 |----------|----------------|
 | `DATABASE_URL` / `POSTGRES_URL` | Conexión a Postgres/Neon. **Si está vacía, se usa el store JSON local.** |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | API key de Google Maps para el *fallback* del mapa. **Si está vacía, la app se queda en Leaflet/OSM** (no falla). |
+| `ACOPIO_API_ENABLED` | Reactiva la fuente externa `acopiove.org` (`"true"`). **Apagada por defecto**: sus puntos recogen ayuda para Venezuela y no atienden esta emergencia. |
 
 ---
 
@@ -122,12 +141,16 @@ Copia `.env.example` a `.env.local` y completa lo que necesites:
 En **Vercel** el sistema de archivos es efímero, así que el store JSON **no** sirve para producción: usa **Postgres**.
 
 1. Crea una base Postgres (la integración **Neon** del Marketplace de Vercel inyecta `DATABASE_URL` automáticamente).
-2. Define `DATABASE_URL` (o `POSTGRES_URL`) en las variables de entorno del proyecto.
+2. Define `DATABASE_URL` (o `POSTGRES_URL`) en las variables de entorno del proyecto (o en `.env.local` para correr los scripts).
 3. Siembra los datos iniciales:
 
 ```bash
-npm run seed   # crea la tabla y carga data/centers.seed.json (upsert por id)
+npm run seed                  # crea/migra la tabla y carga data/centers.seed.json (upsert por id)
+npm run seed -- --list-extra  # lista los puntos de la base que NO están en la semilla
+npm run seed -- --purge-extra # ⚠️ los elimina (irreversible)
 ```
+
+> **Al cambiar de emergencia**, la base conserva los puntos de la anterior. Revísalos con `--list-extra` antes de purgar: `--purge-extra` también borraría los reportes ciudadanos aprobados que no estén en la semilla.
 
 El selector de store vive en `lib/db/index.ts`: si detecta `DATABASE_URL`/`POSTGRES_URL` usa Postgres; si no, JSON local.
 
@@ -155,24 +178,27 @@ Base: `https://red-acopio-two.vercel.app/api/v1`
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `GET` | `/api/v1/centers` | Lista combinada (oficial + local). Filtros: `?source=all\|official\|local`, `?city=`, `?material=`, `?status=`, `?q=` |
-| `GET` | `/api/v1/centers/{id}` | Un centro por id |
-| `POST` | `/api/v1/centers` | Recomendar un centro (queda como `reportado`) |
+| `GET` | `/api/v1/centers` | Lista de puntos. Filtros: `?kind=`, `?operational=`, `?city=`, `?material=`, `?status=`, `?source=all\|official\|local`, `?q=` |
+| `GET` | `/api/v1/centers/{id}` | Un punto por id |
+| `POST` | `/api/v1/centers` | Recomendar un punto (queda como `reportado`) |
 
 ```bash
-# Centros verificados en Medellín
-curl "https://red-acopio-two.vercel.app/api/v1/centers?city=Medellín&status=verificado"
+# Albergues en Manizales
+curl "https://red-acopio-two.vercel.app/api/v1/centers?city=Manizales&kind=albergue"
+
+# Acopios que aún reciben (excluye saturados y cerrados)
+curl "https://red-acopio-two.vercel.app/api/v1/centers?kind=acopio&operational=recibiendo"
 ```
 
 ```json
 {
-  "attribution": "Centros verificados de acopiove.org … combinados con aportes locales de Red de Acopio.",
-  "total": 56,
-  "items": [ { "id": "...", "name": "...", "materials": ["alimentos"], "status": "verificado", "source": "acopiove.org", ... } ]
+  "attribution": "Puntos de ayuda del sismo de Colombia del 10 de agosto de 2026…",
+  "total": 3,
+  "items": [ { "id": "...", "name": "...", "kind": "albergue", "operational": "recibiendo", "status": "sin_verificar", "source": "https://…", ... } ]
 }
 ```
 
-> Los datos verificados provienen de la red oficial **[acopiove.org](https://acopiove.org)** (terremotovenezuela.app). Atribúyela si reutilizas los datos.
+> **Si reutilizas los datos, conserva `source` y `status`.** En una emergencia, un dato sin procedencia ni nivel de verificación es un riesgo, no una comodidad.
 
 ---
 

@@ -6,7 +6,7 @@
  * validación del cliente: siempre re-valida con `centerInputSchema`.
  */
 import { z } from "zod";
-import { MATERIAL_CATEGORIES } from "./types";
+import { MATERIAL_CATEGORIES, POINT_KINDS } from "./types";
 
 /**
  * Teléfono colombiano flexible: acepta fijos y celulares, con o sin indicativo,
@@ -14,7 +14,14 @@ import { MATERIAL_CATEGORIES } from "./types";
  */
 const phoneRegex = /^[+]?[\d\s()-]{7,20}$/;
 
-export const centerInputSchema = z.object({
+/**
+ * Objeto base sin reglas condicionales.
+ *
+ * Se exporta porque `centerInputSchema` lleva un `superRefine` encima y los
+ * `ZodEffects` no admiten `.partial()`/`.extend()`; el panel admin necesita esa
+ * versión parcial para su PATCH.
+ */
+export const centerFieldsSchema = z.object({
   name: z
     .string()
     .trim()
@@ -32,9 +39,10 @@ export const centerInputSchema = z.object({
     .optional()
     .or(z.literal(""))
     .nullable(),
-  materials: z
-    .array(z.enum(MATERIAL_CATEGORIES))
-    .min(1, "Selecciona al menos un material que el centro recibe."),
+  kind: z.enum(POINT_KINDS).default("acopio"),
+  // La obligatoriedad depende del tipo de punto: un albergue no recibe
+  // donaciones. La regla condicional vive en el superRefine de abajo.
+  materials: z.array(z.enum(MATERIAL_CATEGORIES)).default([]),
   schedule: z
     .string()
     .trim()
@@ -55,6 +63,23 @@ export const centerInputSchema = z.object({
     .optional()
     .or(z.literal(""))
     .nullable(),
+});
+
+/**
+ * Esquema público de entrada.
+ *
+ * Regla condicional: solo los centros de acopio deben declarar qué reciben.
+ * Exigir materiales a un albergue impediría reportarlo, que es justo el dato
+ * más urgente para alguien que se quedó sin casa.
+ */
+export const centerInputSchema = centerFieldsSchema.superRefine((value, ctx) => {
+  if (value.kind === "acopio" && value.materials.length === 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["materials"],
+      message: "Selecciona al menos un material que el centro recibe.",
+    });
+  }
 });
 
 /** Tipo inferido del esquema; coincide con `CenterInput` de `types.ts`. */

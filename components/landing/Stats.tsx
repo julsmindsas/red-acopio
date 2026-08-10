@@ -7,14 +7,14 @@ import CountUp from "./CountUp";
  * (listAllCenters) y los muestra con un contador animado en el cliente.
  *
  * Métricas:
- *   - Centros de acopio: total de puntos en el mapa (oficiales + comunidad).
- *   - Ciudades y municipios: localidades distintas con al menos un centro.
- *   - Verificados: centros confirmados contra la red oficial (acopiove.org).
+ *   - Puntos de ayuda: total de puntos en el mapa, de cualquier tipo.
+ *   - Albergues: lo que más se busca cuando una vivienda queda inhabitable.
+ *   - Ciudades y municipios: localidades distintas con al menos un punto.
  */
 
 export default function Stats({ centers }: { centers: Center[] }) {
   const total = centers.length;
-  const verificados = centers.filter((c) => c.status === "verificado").length;
+  const albergues = centers.filter((c) => c.kind === "albergue").length;
   const ciudades = new Set(
     centers
       .map((c) => c.city?.trim())
@@ -25,20 +25,20 @@ export default function Stats({ centers }: { centers: Center[] }) {
     {
       value: total,
       emoji: "📍",
-      label: "Centros de acopio",
-      hint: "puntos activos en el mapa",
+      label: "Puntos de ayuda",
+      hint: "albergues, acopios, brigadas y agua",
+    },
+    {
+      value: albergues,
+      emoji: "🏠",
+      label: "Albergues",
+      hint: "alojamiento temporal reportado",
     },
     {
       value: ciudades,
       emoji: "🏙️",
       label: "Ciudades y municipios",
       hint: "con cobertura en Colombia",
-    },
-    {
-      value: verificados,
-      emoji: "🛡️",
-      label: "Verificados",
-      hint: "confirmados con acopiove.org",
     },
   ];
 

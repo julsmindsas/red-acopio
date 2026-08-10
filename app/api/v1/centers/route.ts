@@ -7,8 +7,20 @@
  *
  * CORS abierto: cualquier origen puede consumir estos endpoints.
  */
-import type { ApiError, Center, MaterialCategory, VerificationStatus } from "@/lib/types";
-import { MATERIAL_CATEGORIES, VERIFICATION_STATUSES } from "@/lib/types";
+import type {
+  ApiError,
+  Center,
+  MaterialCategory,
+  OperationalStatus,
+  PointKind,
+  VerificationStatus,
+} from "@/lib/types";
+import {
+  MATERIAL_CATEGORIES,
+  OPERATIONAL_STATUSES,
+  POINT_KINDS,
+  VERIFICATION_STATUSES,
+} from "@/lib/types";
 import { listAllCenters } from "@/lib/centers-source";
 import { getRepository } from "@/lib/db";
 import { centerInputSchema, formatZodErrors } from "@/lib/validation";
@@ -19,7 +31,9 @@ export const dynamic = "force-dynamic";
 
 /** Mensaje de atribución que acompaña todas las respuestas de listado. */
 const ATTRIBUTION =
-  "Centros verificados de acopiove.org (terremotovenezuela.app) combinados con aportes locales de Red de Acopio.";
+  "Puntos de ayuda del sismo de Colombia del 10 de agosto de 2026, recopilados por Red de Acopio. " +
+  "Cada punto incluye la URL de su fuente en el campo `source` y su estado de verificación en `status`. " +
+  "Datos abiertos (MIT): cítanos si los reutilizas.";
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/centers
@@ -27,11 +41,13 @@ const ATTRIBUTION =
 
 /**
  * Parámetros de filtrado soportados:
- *   - source:   "all" | "official" | "local"   (defecto: "all")
- *   - city:     cadena libre, comparación insensible a mayúsculas.
- *   - material: una MaterialCategory válida.
- *   - status:   un VerificationStatus válido.
- *   - q:        búsqueda de texto en nombre y dirección (insensible a mayúsculas).
+ *   - source:      "all" | "official" | "local"   (defecto: "all")
+ *   - city:        cadena libre, comparación insensible a mayúsculas.
+ *   - kind:        un PointKind válido (acopio, albergue, brigada_medica, punto_agua).
+ *   - material:    una MaterialCategory válida.
+ *   - status:      un VerificationStatus válido.
+ *   - operational: un OperationalStatus válido (recibiendo, lleno, cerrado, desconocido).
+ *   - q:           búsqueda de texto en nombre y dirección (insensible a mayúsculas).
  */
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -40,8 +56,10 @@ export async function GET(req: Request): Promise<Response> {
     // Leer y normalizar los parámetros de consulta.
     const sourceParam = searchParams.get("source") ?? "all";
     const cityParam   = searchParams.get("city")?.trim().toLowerCase() ?? "";
+    const kindParam     = searchParams.get("kind") ?? "";
     const materialParam = searchParams.get("material") ?? "";
     const statusParam   = searchParams.get("status") ?? "";
+    const operationalParam = searchParams.get("operational") ?? "";
     const qParam        = searchParams.get("q")?.trim().toLowerCase() ?? "";
 
     // Validar "source": sólo se aceptan los valores definidos.
@@ -49,6 +67,29 @@ export async function GET(req: Request): Promise<Response> {
       return json(
         {
           error: `Parámetro "source" inválido. Valores aceptados: all, official, local.`,
+        } satisfies ApiError,
+        { status: 400 },
+      );
+    }
+
+    // Validar "kind" si viene.
+    if (kindParam && !(POINT_KINDS as readonly string[]).includes(kindParam)) {
+      return json(
+        {
+          error: `Parámetro "kind" inválido. Valores aceptados: ${POINT_KINDS.join(", ")}.`,
+        } satisfies ApiError,
+        { status: 400 },
+      );
+    }
+
+    // Validar "operational" si viene.
+    if (
+      operationalParam &&
+      !(OPERATIONAL_STATUSES as readonly string[]).includes(operationalParam)
+    ) {
+      return json(
+        {
+          error: `Parámetro "operational" inválido. Valores aceptados: ${OPERATIONAL_STATUSES.join(", ")}.`,
         } satisfies ApiError,
         { status: 400 },
       );
@@ -89,6 +130,18 @@ export async function GET(req: Request): Promise<Response> {
       items = items.filter(
         (c) => c.city?.toLowerCase().includes(cityParam) || c.address.toLowerCase().includes(cityParam),
       );
+    }
+
+    // Filtrar por tipo de punto.
+    if (kindParam) {
+      const kind = kindParam as PointKind;
+      items = items.filter((c) => c.kind === kind);
+    }
+
+    // Filtrar por estado operativo.
+    if (operationalParam) {
+      const op = operationalParam as OperationalStatus;
+      items = items.filter((c) => c.operational === op);
     }
 
     // Filtrar por material.

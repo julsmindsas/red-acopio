@@ -7,6 +7,7 @@
  * (lo que una fuente logra extraer, sin geocodificar y con materiales en texto
  * libre) en un `Center` ya normalizado (materiales mapeados, lat/lng, id, etc.).
  */
+import type { PointKind } from "../../lib/types";
 
 /**
  * Centro de acopio "crudo": lo que un adaptador de fuente extrae de una página.
@@ -19,6 +20,11 @@
 export interface RawCenter {
   /** Nombre del lugar u organización tal como aparece en la fuente. */
   name: string;
+  /**
+   * Qué es el punto: centro de acopio, albergue, brigada médica o punto de
+   * agua. Si el adaptador no lo determina, el orquestador asume `"acopio"`.
+   */
+  kind?: PointKind;
   /** Dirección en texto libre, si la fuente la publica. */
   address?: string;
   /** Teléfono de contacto, si la fuente lo publica. */

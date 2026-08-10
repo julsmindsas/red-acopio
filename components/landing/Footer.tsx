@@ -74,19 +74,20 @@ export default function Footer() {
               </span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-foreground/65">
-              Mapa abierto de centros de acopio para la ayuda a Venezuela, desde
-              Colombia. De la comunidad, para la comunidad.
+              Mapa abierto de albergues y centros de acopio tras el sismo del 10
+              de agosto de 2026. De la comunidad, para la comunidad.
             </p>
             <p className="mt-3 text-xs text-foreground/50">
-              <span aria-hidden="true">🇨🇴</span> Medellín · Colombia
+              <span aria-hidden="true">🇨🇴</span> Colombia
             </p>
           </div>
 
           <FooterColumn
             title="Explorar"
             links={[
-              { href: "/mapa", label: "Mapa de centros" },
-              { href: "/reportar", label: "Recomendar un centro" },
+              { href: "/mapa", label: "Mapa de puntos" },
+              { href: "/ayuda", label: "Cómo ayudar" },
+              { href: "/reportar", label: "Recomendar un punto" },
             ]}
           />
 
@@ -105,9 +106,14 @@ export default function Footer() {
             ⚠️
           </span>
           <p className="leading-relaxed">
-            <strong className="font-semibold">Verifica antes de donar.</strong>{" "}
-            La información es comunitaria y puede cambiar. Confirma por teléfono
-            el horario y qué materiales reciben antes de acudir a un centro.
+            <strong className="font-semibold">Confirma antes de ir.</strong> La
+            información es comunitaria y en una emergencia cambia por horas.
+            Verifica que el punto siga operando —y qué está recibiendo— antes de
+            desplazarte. Si es una emergencia, llama al{" "}
+            <a href="tel:123" className="font-bold underline underline-offset-2">
+              123
+            </a>
+            .
           </p>
         </div>
 
@@ -129,14 +135,14 @@ export default function Footer() {
               GitHub
             </a>
             <span aria-hidden="true">·</span>
-            Datos verificados por{" "}
+            Mapas ©{" "}
             <a
-              href="https://acopiove.org"
+              href="https://www.openstreetmap.org/copyright"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-brand-700 hover:underline"
             >
-              acopiove.org
+              OpenStreetMap
             </a>
           </p>
         </div>

@@ -9,9 +9,9 @@ import ReportForm from "@/components/ReportForm";
  */
 
 export const metadata: Metadata = {
-  title: "Recomendar un centro — Red de Acopio",
+  title: "Recomendar un punto — Red de Acopio",
   description:
-    "Recomienda un centro de acopio real y activo en Medellín para que más personas puedan donar ayuda humanitaria.",
+    "Recomienda un albergue, centro de acopio, brigada médica o punto de agua real y activo tras el sismo del 10 de agosto de 2026 en Colombia.",
 };
 
 export default function ReportarPage() {
@@ -30,11 +30,12 @@ export default function ReportarPage() {
             Volver al mapa
           </Link>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
-            Recomendar un centro de acopio
+            Recomendar un punto de ayuda
           </h1>
           <p className="mt-1 text-sm text-foreground/70">
-            Ayuda a que la comunidad encuentre dónde donar. Tu recomendación
-            quedará pendiente de revisión antes de publicarse.
+            Un albergue, un centro de acopio, una brigada médica o un punto de
+            agua. Tu recomendación quedará pendiente de revisión antes de
+            publicarse.
           </p>
         </div>
 
@@ -45,11 +46,11 @@ export default function ReportarPage() {
           </span>
           <p className="leading-relaxed">
             <strong className="font-semibold">
-              Recomienda solo centros reales que conozcas.
+              Recomienda solo puntos reales que conozcas.
             </strong>{" "}
-            La información errónea desperdicia el esfuerzo de quienes donan y de
-            quienes coordinan la ayuda. Si tienes dudas, confirma con el centro
-            antes de recomendarlo.
+            Un dato errado puede mandar a una familia sin casa a un albergue que
+            no existe. Si tienes dudas, confirma con el punto antes de
+            recomendarlo.
           </p>
         </div>
 

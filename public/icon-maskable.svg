@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Red de Acopio">
+  <!-- Versión maskable: el arte vive dentro de la zona segura (círculo central
+       del 80%), para que los recortes de Android no corten el pin. -->
+  <rect width="512" height="512" fill="#059669"/>
+  <path d="M256 152c-53 0-96 43-96 96 0 67 83 141 91 148a7 7 0 0 0 10 0c8-7 91-81 91-148 0-53-43-96-96-96z" fill="#ffffff"/>
+  <circle cx="256" cy="246" r="37" fill="#059669"/>
+</svg>

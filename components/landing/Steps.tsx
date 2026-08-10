@@ -9,19 +9,19 @@ const STEPS = [
     n: "1",
     emoji: "🔎",
     title: "Encuentra",
-    text: "Abre el mapa y ubica el centro de acopio más cercano. Activa tu ubicación para ordenarlos por cercanía a ti.",
+    text: "Abre el mapa y filtra por lo que necesitas: albergue, acopio, brigada médica o punto de agua. Con tu ubicación activa, aparecen ordenados por cercanía.",
   },
   {
     n: "2",
     emoji: "✅",
     title: "Confirma",
-    text: "Mira si está verificado y llama antes de ir: confirma el horario y qué materiales están recibiendo hoy.",
+    text: "Mira su estado y llama antes de ir: si sigue operando, qué está recibiendo hoy y si ya está saturado.",
   },
   {
     n: "3",
     emoji: "🤝",
-    title: "Dona",
-    text: "Lleva tu donación al punto. Cada aporte llega a las familias afectadas por los terremotos en Venezuela.",
+    title: "Actúa",
+    text: "Acude al punto o lleva tu donación. Si conoces uno que falta en el mapa, repórtalo para que le sirva a alguien más.",
   },
 ] as const;
 

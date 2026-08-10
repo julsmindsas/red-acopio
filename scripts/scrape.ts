@@ -35,8 +35,17 @@ import type { RawCenter } from "./sources/types";
 // Configuración
 // ---------------------------------------------------------------------------
 
-/** Fecha fija de esta corrida de curado (ISO). El proyecto la fija al 2026-06-29. */
-const FIXED_DATE = "2026-06-29T00:00:00.000Z";
+/**
+ * Fecha fija de esta corrida de curado (ISO).
+ *
+ * Se fija a mano —en vez de usar `new Date()`— para que dos corridas del scraper
+ * sobre las mismas fuentes produzcan un diff vacío. Actualízala cuando cures una
+ * tanda nueva. Corresponde al sismo de Chocó del 10 de agosto de 2026.
+ */
+const FIXED_DATE = "2026-08-10T00:00:00.000Z";
+
+/** Fecha legible que se cita en las notas de geocodificación. */
+const GEO_DATE = "2026-08-10";
 
 const SCRAPED_DIR = path.join(process.cwd(), "data", "scraped");
 const CURATED_FILE = path.join(SCRAPED_DIR, "curados.json");
@@ -44,11 +53,23 @@ const GEOCODE_CACHE_FILE = path.join(SCRAPED_DIR, "geocode-cache.json");
 
 /** Centroides de respaldo por municipio (solo si la geocodificación falla del todo). */
 const MUNICIPIO_FALLBACK: Record<string, { lat: number; lng: number }> = {
+  // Zonas afectadas por el sismo del 10 de agosto de 2026
+  "Manizales": { lat: 5.0689, lng: -75.5174 },
+  "Pereira": { lat: 4.8133, lng: -75.6961 },
+  "Armenia": { lat: 4.5339, lng: -75.6811 },
+  "Cali": { lat: 3.4516, lng: -76.532 },
+  "Quibdó": { lat: 5.6947, lng: -76.6611 },
+  "San José del Palmar": { lat: 4.8964, lng: -76.2286 },
+  // Ciudades desde las que se envía ayuda
+  "Bogotá": { lat: 4.711, lng: -74.0721 },
   "Medellín": { lat: 6.2476, lng: -75.5658 },
   "Itagüí": { lat: 6.1721, lng: -75.6116 },
   "Bello": { lat: 6.3378, lng: -75.5578 },
   "Envigado": { lat: 6.17, lng: -75.5847 },
 };
+
+/** Municipio asumido cuando un adaptador no lo declara: el más afectado. */
+const DEFAULT_MUNICIPIO = "Manizales";
 
 // ---------------------------------------------------------------------------
 // Utilidades de texto
@@ -238,13 +259,13 @@ async function geocode(
 function geoNote(precision: Precision): string {
   switch (precision) {
     case "poi":
-      return "Geocodificación: punto exacto (POI) vía Nominatim/OSM, 2026-06-29.";
+      return `Geocodificación: punto exacto (POI) vía Nominatim/OSM, ${GEO_DATE}.`;
     case "calle":
-      return "Geocodificación a nivel de calle vía Nominatim/OSM, 2026-06-29 (no a número de puerta exacto).";
+      return `Geocodificación a nivel de calle vía Nominatim/OSM, ${GEO_DATE} (no a número de puerta exacto).`;
     case "barrio_centroide":
-      return "Ubicación APROXIMADA (centroide del barrio) vía Nominatim/OSM, 2026-06-29: la fuente no publicó dirección exacta.";
+      return `Ubicación APROXIMADA (centroide del barrio) vía Nominatim/OSM, ${GEO_DATE}: la fuente no publicó dirección exacta.`;
     case "barrio_aprox":
-      return "Ubicación APROXIMADA vía Nominatim/OSM, 2026-06-29: no se ubicó la dirección exacta; punto aproximado dentro del barrio.";
+      return `Ubicación APROXIMADA vía Nominatim/OSM, ${GEO_DATE}: no se ubicó la dirección exacta; punto aproximado dentro del barrio.`;
     case "municipio_fallback":
       return "Ubicación MUY APROXIMADA (centro del municipio): no se pudo geocodificar la dirección.";
   }
@@ -271,13 +292,16 @@ async function normalize(
   usedIds.add(id);
 
   // ---- materiales ----
+  // Solo los centros de acopio reciben donaciones: a un albergue o una brigada
+  // médica no se le inventa un material "otros" que no significa nada.
+  const kind = raw.kind ?? "acopio";
   let materials = mapMaterials(raw.materials ?? []);
-  if (materials.length === 0) materials = ["otros"];
+  if (materials.length === 0 && kind === "acopio") materials = ["otros"];
 
   // ---- geocodificación ----
   const query =
     raw.geoQuery ??
-    `${raw.address ?? raw.name}, ${raw.municipality ?? "Medellín"}, Colombia`;
+    `${raw.address ?? raw.name}, ${raw.municipality ?? DEFAULT_MUNICIPIO}, Colombia`;
 
   let lat: number;
   let lng: number;
@@ -297,7 +321,9 @@ async function normalize(
       precision = geo.precision;
     } else {
       // Fallback honesto: centroide del municipio, claramente marcado.
-      const fb = MUNICIPIO_FALLBACK[raw.municipality ?? "Medellín"] ?? MUNICIPIO_FALLBACK["Medellín"];
+      const fb =
+        MUNICIPIO_FALLBACK[raw.municipality ?? DEFAULT_MUNICIPIO] ??
+        MUNICIPIO_FALLBACK[DEFAULT_MUNICIPIO];
       lat = fb.lat;
       lng = fb.lng;
       precision = "municipio_fallback";
@@ -315,8 +341,11 @@ async function normalize(
     id,
     name: raw.name,
     address: raw.address ?? "Dirección no publicada",
+    kind,
     phone: raw.phone ?? null,
     materials,
+    // El scraping no puede saber si el punto está saturado ahora mismo.
+    operational: "desconocido",
     schedule: raw.schedule ?? "Horario no publicado",
     lat,
     lng,

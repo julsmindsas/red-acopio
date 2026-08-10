@@ -1,8 +1,21 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import type { Center, CenterPatch, MaterialCategory } from "@/lib/types";
-import { STATUS_META, VERIFICATION_STATUSES } from "@/lib/constants";
+import type {
+  Center,
+  CenterPatch,
+  MaterialCategory,
+  OperationalStatus,
+  PointKind,
+} from "@/lib/types";
+import {
+  OPERATIONAL_META,
+  OPERATIONAL_STATUSES,
+  POINT_KINDS,
+  POINT_KIND_META,
+  STATUS_META,
+  VERIFICATION_STATUSES,
+} from "@/lib/constants";
 import type { Result } from "./api";
 import { Banner, Field, MaterialPicker, Spinner, inputClass } from "./ui";
 
@@ -47,6 +60,17 @@ export default function EditCenterForm({
   const [country, setCountry] = useState(center.country ?? "");
   const [notes, setNotes] = useState(center.notes ?? "");
   const [status, setStatus] = useState(center.status);
+  const [kind, setKind] = useState<PointKind>(center.kind);
+  const [operational, setOperational] = useState<OperationalStatus>(
+    center.operational,
+  );
+  // Campos operativos: lo que más cambia durante la emergencia.
+  const [urgentNeeds, setUrgentNeeds] = useState<Set<MaterialCategory>>(
+    () => new Set(center.urgentNeeds ?? []),
+  );
+  const [notReceiving, setNotReceiving] = useState<Set<MaterialCategory>>(
+    () => new Set(center.notReceiving ?? []),
+  );
 
   // --- Estado de envío / errores ------------------------------------------
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -75,14 +99,20 @@ export default function EditCenterForm({
     // por Escape respete el envío en curso.
   }, [onClose, submitting]);
 
-  const toggleMaterial = (m: MaterialCategory) => {
-    setMaterials((prev) => {
+  const toggleIn = (
+    setter: React.Dispatch<React.SetStateAction<Set<MaterialCategory>>>,
+  ) => (m: MaterialCategory) => {
+    setter((prev) => {
       const next = new Set(prev);
       if (next.has(m)) next.delete(m);
       else next.add(m);
       return next;
     });
   };
+
+  const toggleMaterial = toggleIn(setMaterials);
+  const toggleUrgent = toggleIn(setUrgentNeeds);
+  const toggleNotReceiving = toggleIn(setNotReceiving);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +126,8 @@ export default function EditCenterForm({
       localErrors.lat = ["Ingresa una latitud válida."];
     if (lng.trim() === "" || !Number.isFinite(lngN))
       localErrors.lng = ["Ingresa una longitud válida."];
-    if (materials.size === 0)
+    // Solo un centro de acopio necesita declarar materiales.
+    if (kind === "acopio" && materials.size === 0)
       localErrors.materials = ["Selecciona al menos un material."];
 
     if (Object.keys(localErrors).length > 0) {
@@ -119,6 +150,10 @@ export default function EditCenterForm({
       country: country.trim() === "" ? null : country.trim(),
       notes: notes.trim() === "" ? null : notes.trim(),
       status,
+      kind,
+      operational,
+      urgentNeeds: Array.from(urgentNeeds),
+      notReceiving: Array.from(notReceiving),
     };
 
     setSubmitting(true);
@@ -230,11 +265,76 @@ export default function EditCenterForm({
               />
             </Field>
 
-            <MaterialPicker
-              selected={materials}
-              onToggle={toggleMaterial}
-              error={errFor("materials")}
-            />
+            <Field
+              label="Tipo de punto"
+              htmlFor="edit-kind"
+              required
+              error={errFor("kind")}
+              hint={POINT_KIND_META[kind].description}
+            >
+              <select
+                id="edit-kind"
+                value={kind}
+                onChange={(e) => setKind(e.target.value as PointKind)}
+                className={inputClass(!!errFor("kind"))}
+              >
+                {POINT_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {POINT_KIND_META[k].emoji} {POINT_KIND_META[k].label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field
+              label="Estado operativo"
+              htmlFor="edit-operational"
+              required
+              error={errFor("operational")}
+              hint={OPERATIONAL_META[operational].description}
+            >
+              <select
+                id="edit-operational"
+                value={operational}
+                onChange={(e) =>
+                  setOperational(e.target.value as OperationalStatus)
+                }
+                className={inputClass(!!errFor("operational"))}
+              >
+                {OPERATIONAL_STATUSES.map((o) => (
+                  <option key={o} value={o}>
+                    {OPERATIONAL_META[o].emoji} {OPERATIONAL_META[o].label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            {/* Materiales: solo tienen sentido en un centro de acopio */}
+            {kind === "acopio" && (
+              <>
+                <MaterialPicker
+                  selected={materials}
+                  onToggle={toggleMaterial}
+                  error={errFor("materials")}
+                />
+
+                <MaterialPicker
+                  legend="Necesita con urgencia"
+                  hint="Se destaca en la tarjeta para dirigir las donaciones."
+                  selected={urgentNeeds}
+                  onToggle={toggleUrgent}
+                  error={errFor("urgentNeeds")}
+                />
+
+                <MaterialPicker
+                  legend="No recibir (saturado)"
+                  hint="Evita que la gente siga llevando lo que ya sobra."
+                  selected={notReceiving}
+                  onToggle={toggleNotReceiving}
+                  error={errFor("notReceiving")}
+                />
+              </>
+            )}
 
             <Field
               label="Horario"

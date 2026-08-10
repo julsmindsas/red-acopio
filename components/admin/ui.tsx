@@ -147,19 +147,30 @@ export function MaterialPicker({
   selected,
   onToggle,
   error,
+  legend = "Materiales que recibe",
+  hint,
+  /** Solo la lista principal de materiales es obligatoria. */
+  required = legend === "Materiales que recibe",
 }: {
   selected: Set<MaterialCategory>;
   onToggle: (m: MaterialCategory) => void;
   error?: string;
+  legend?: string;
+  hint?: string;
+  required?: boolean;
 }) {
   return (
     <fieldset>
       <legend className="text-sm font-semibold text-foreground">
-        Materiales que recibe{" "}
-        <span className="text-red-600" aria-hidden="true">
-          *
-        </span>
+        {legend}
+        {required && (
+          <span className="text-red-600" aria-hidden="true">
+            {" "}
+            *
+          </span>
+        )}
       </legend>
+      {hint && <p className="mt-0.5 text-xs text-foreground/55">{hint}</p>}
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {MATERIAL_CATEGORIES.map((m) => {
           const checked = selected.has(m);

@@ -23,6 +23,7 @@ const REPO_URL = "https://github.com/julsmindsas/red-acopio";
 const NAV = [
   { href: "/", label: "Inicio" },
   { href: "/mapa", label: "Mapa" },
+  { href: "/ayuda", label: "Cómo ayudar" },
   { href: "/reportar", label: "Recomendar" },
   { href: "/api-docs", label: "API" },
 ] as const;
@@ -60,7 +61,7 @@ export default function Header({
               Red de Acopio
             </span>
             <span className="text-[11px] font-medium text-foreground/55">
-              Colombia 🇨🇴 → Venezuela 🇻🇪
+              Sismo Colombia 🇨🇴 · 10 ago 2026
             </span>
           </span>
         </Link>

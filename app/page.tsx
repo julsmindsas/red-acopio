@@ -22,13 +22,13 @@ import Footer from "@/components/landing/Footer";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Red de Acopio — Dónde donar para Venezuela, desde Colombia",
+  title: "Red de Acopio — Dónde refugiarse y dónde donar, sismo Colombia 2026",
   description:
-    "Mapa abierto y verificado de centros de acopio en Medellín y Colombia para ayudar a los afectados por los terremotos en Venezuela. Encuentra el centro más cercano, confírmalo y dona.",
+    "Mapa abierto de albergues, centros de acopio, brigadas médicas y puntos de agua tras el sismo de magnitud 7.4 del 10 de agosto de 2026 en Colombia. Encuentra el punto más cercano y confírmalo antes de ir.",
   openGraph: {
-    title: "Red de Acopio — Dónde donar para Venezuela, desde Colombia",
+    title: "Red de Acopio — Dónde refugiarse y dónde donar, sismo Colombia 2026",
     description:
-      "Mapa abierto y verificado de centros de acopio en Colombia para coordinar donaciones de ayuda humanitaria a Venezuela.",
+      "Albergues, acopios, brigadas médicas y puntos de agua en Manizales, Pereira, Armenia, Cali y Quibdó tras el sismo del 10 de agosto de 2026.",
     type: "website",
     locale: "es_CO",
   },

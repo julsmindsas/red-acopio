@@ -10,15 +10,34 @@
 import { neon } from "@neondatabase/serverless";
 
 import type { Center, CenterInput, CenterPatch, MaterialCategory } from "../types";
+import { toOperationalStatus, toPointKind } from "../center-normalize";
 import type { CenterRepository, CreateMeta } from "./repository";
+
+/** Lee una columna jsonb de materiales que puede venir nula o como texto. */
+function parseMaterials(value: unknown): MaterialCategory[] {
+  if (Array.isArray(value)) return value as MaterialCategory[];
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? (parsed as MaterialCategory[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
 /** Fila tal como la retorna Postgres (snake_case). */
 interface CenterRow {
   id: string;
   name: string;
   address: string;
+  kind: string | null;
   phone: string | null;
   materials: MaterialCategory[]; // Postgres devuelve jsonb ya parseado por el driver
+  urgent_needs: MaterialCategory[] | null;
+  not_receiving: MaterialCategory[] | null;
+  operational: string | null;
   schedule: string;
   lat: number;
   lng: number;
@@ -37,8 +56,14 @@ function rowToCenter(row: CenterRow): Center {
     id: row.id,
     name: row.name,
     address: row.address,
+    kind: toPointKind(row.kind),
     phone: row.phone,
-    materials: Array.isArray(row.materials) ? row.materials : JSON.parse(row.materials as unknown as string),
+    materials: parseMaterials(row.materials),
+    urgentNeeds: row.urgent_needs ? parseMaterials(row.urgent_needs) : undefined,
+    notReceiving: row.not_receiving
+      ? parseMaterials(row.not_receiving)
+      : undefined,
+    operational: toOperationalStatus(row.operational),
     schedule: row.schedule,
     lat: Number(row.lat),
     lng: Number(row.lng),
@@ -85,6 +110,13 @@ export class PostgresStore implements CenterRepository {
     // Migración: añade columnas city/country en bases ya existentes (idempotente)
     await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS city text`;
     await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS country text`;
+    // Migración (sismo Colombia 2026): tipo de punto y estado operativo.
+    // Los registros existentes quedan como centros de acopio con estado sin
+    // confirmar, que es exactamente lo que eran.
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'acopio'`;
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS operational text NOT NULL DEFAULT 'desconocido'`;
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS urgent_needs jsonb`;
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS not_receiving jsonb`;
   }
 
   /** Devuelve todos los centros ordenados del más reciente al más antiguo. */
@@ -116,13 +148,15 @@ export class PostgresStore implements CenterRepository {
     const notes = input.notes ?? null;
     const materials = JSON.stringify(input.materials);
 
+    const kind = input.kind ?? "acopio";
+
     const rows = await this.sql`
       INSERT INTO centers
-        (id, name, address, phone, materials, schedule, lat, lng, notes, source, status, created_at, updated_at)
+        (id, name, address, kind, phone, materials, schedule, lat, lng, notes, source, status, operational, created_at, updated_at)
       VALUES
-        (${id}, ${input.name}, ${input.address}, ${phone}, ${materials}::jsonb,
+        (${id}, ${input.name}, ${input.address}, ${kind}, ${phone}, ${materials}::jsonb,
          ${input.schedule}, ${input.lat}, ${input.lng}, ${notes}, ${source}, ${status},
-         ${now}::timestamptz, ${now}::timestamptz)
+         'desconocido', ${now}::timestamptz, ${now}::timestamptz)
       RETURNING *
     ` as CenterRow[];
 
@@ -143,9 +177,19 @@ export class PostgresStore implements CenterRepository {
     // Cada push() devuelve el nuevo length, que coincide con el índice $N
     if (patch.name !== undefined)      { setClauses.push(`name = $${values.push(patch.name)}`); }
     if (patch.address !== undefined)   { setClauses.push(`address = $${values.push(patch.address)}`); }
+    if (patch.kind !== undefined)      { setClauses.push(`kind = $${values.push(patch.kind)}`); }
     if (patch.phone !== undefined)     { setClauses.push(`phone = $${values.push(patch.phone ?? null)}`); }
     if (patch.materials !== undefined) {
       setClauses.push(`materials = $${values.push(JSON.stringify(patch.materials))}::jsonb`);
+    }
+    if (patch.urgentNeeds !== undefined) {
+      setClauses.push(`urgent_needs = $${values.push(JSON.stringify(patch.urgentNeeds))}::jsonb`);
+    }
+    if (patch.notReceiving !== undefined) {
+      setClauses.push(`not_receiving = $${values.push(JSON.stringify(patch.notReceiving))}::jsonb`);
+    }
+    if (patch.operational !== undefined) {
+      setClauses.push(`operational = $${values.push(patch.operational)}`);
     }
     if (patch.schedule !== undefined)  { setClauses.push(`schedule = $${values.push(patch.schedule)}`); }
     if (patch.lat !== undefined)       { setClauses.push(`lat = $${values.push(patch.lat)}`); }
@@ -189,26 +233,43 @@ export class PostgresStore implements CenterRepository {
    */
   async upsertFromSeed(center: Center): Promise<void> {
     const materials = JSON.stringify(center.materials);
+    const urgentNeeds = center.urgentNeeds
+      ? JSON.stringify(center.urgentNeeds)
+      : null;
+    const notReceiving = center.notReceiving
+      ? JSON.stringify(center.notReceiving)
+      : null;
     await this.sql`
       INSERT INTO centers
-        (id, name, address, phone, materials, schedule, lat, lng, notes, source, status, created_at, updated_at)
+        (id, name, address, kind, phone, materials, urgent_needs, not_receiving,
+         schedule, lat, lng, city, country, notes, source, status, operational,
+         created_at, updated_at)
       VALUES
-        (${center.id}, ${center.name}, ${center.address}, ${center.phone ?? null},
-         ${materials}::jsonb, ${center.schedule}, ${center.lat}, ${center.lng},
+        (${center.id}, ${center.name}, ${center.address}, ${center.kind},
+         ${center.phone ?? null}, ${materials}::jsonb, ${urgentNeeds}::jsonb,
+         ${notReceiving}::jsonb, ${center.schedule}, ${center.lat}, ${center.lng},
+         ${center.city ?? null}, ${center.country ?? null},
          ${center.notes ?? null}, ${center.source ?? null}, ${center.status},
+         ${center.operational},
          ${center.createdAt}::timestamptz, ${center.updatedAt}::timestamptz)
       ON CONFLICT (id) DO UPDATE SET
-        name       = EXCLUDED.name,
-        address    = EXCLUDED.address,
-        phone      = EXCLUDED.phone,
-        materials  = EXCLUDED.materials,
-        schedule   = EXCLUDED.schedule,
-        lat        = EXCLUDED.lat,
-        lng        = EXCLUDED.lng,
-        notes      = EXCLUDED.notes,
-        source     = EXCLUDED.source,
-        status     = EXCLUDED.status,
-        updated_at = EXCLUDED.updated_at
+        name          = EXCLUDED.name,
+        address       = EXCLUDED.address,
+        kind          = EXCLUDED.kind,
+        phone         = EXCLUDED.phone,
+        materials     = EXCLUDED.materials,
+        urgent_needs  = EXCLUDED.urgent_needs,
+        not_receiving = EXCLUDED.not_receiving,
+        schedule      = EXCLUDED.schedule,
+        lat           = EXCLUDED.lat,
+        lng           = EXCLUDED.lng,
+        city          = EXCLUDED.city,
+        country       = EXCLUDED.country,
+        notes         = EXCLUDED.notes,
+        source        = EXCLUDED.source,
+        status        = EXCLUDED.status,
+        operational   = EXCLUDED.operational,
+        updated_at    = EXCLUDED.updated_at
     `;
   }
 }

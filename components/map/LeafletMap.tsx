@@ -7,8 +7,8 @@ import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import type L from 'leaflet';
 import type { LatLng, MapViewProps } from '@/lib/types';
-import { MEDELLIN_CENTER, DEFAULT_ZOOM } from '@/lib/constants';
-import { createStatusIcon, USER_ICON } from './icons';
+import { DEFAULT_CITY, DEFAULT_ZOOM } from '@/lib/constants';
+import { createPointIcon, USER_ICON } from './icons';
 
 // Extiende MapViewProps con las callbacks de estado de tiles que necesita MapView
 interface LeafletMapProps extends MapViewProps {
@@ -67,6 +67,27 @@ function UserLocationController({
 }
 
 // ---------------------------------------------------------------------------
+// Controlador interno: vuela cuando cambia la ciudad activa.
+// `<MapContainer center>` solo se aplica al montar, así que sin esto el
+// selector de ciudad no movería el mapa.
+// ---------------------------------------------------------------------------
+function CenterController({ center }: { center: LatLng }) {
+  const map = useMap();
+  const first = useRef(true);
+
+  useEffect(() => {
+    // En el montaje el mapa ya nace en `center`: volar sería redundante.
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    map.flyTo([center.lat, center.lng], DEFAULT_ZOOM, { animate: true });
+  }, [center, map]);
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
 
@@ -82,7 +103,7 @@ export default function LeafletMap({
   userLocation,
   selectedId,
   onSelect,
-  center = MEDELLIN_CENTER,
+  center = DEFAULT_CITY.center,
   zoom = DEFAULT_ZOOM,
   className,
   onTileError,
@@ -107,6 +128,9 @@ export default function LeafletMap({
         }}
       />
 
+      {/* Vuela a la ciudad activa cuando el usuario la cambia */}
+      <CenterController center={center} />
+
       {/* Vuela al marcador seleccionado y abre su popup */}
       <MapController selectedId={selectedId} markerRefs={markerRefs} />
 
@@ -118,7 +142,7 @@ export default function LeafletMap({
         <Marker
           key={m.id}
           position={[m.lat, m.lng]}
-          icon={createStatusIcon(m.status)}
+          icon={createPointIcon(m.status, m.kind)}
           ref={(ref) => {
             if (ref) {
               markerRefs.current[m.id] = ref;
