@@ -171,30 +171,37 @@ export default function GoogleMap({
     userMarkerRef.current?.setMap(null);
     userMarkerRef.current = null;
 
-    // Crea marcadores de centros de acopio
-    markers.forEach((m) => {
-      const gm = new google.maps.Marker({
-        position: { lat: m.lat, lng: m.lng },
-        map: gmap,
-        title: m.title,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: STATUS_FILL[m.status],
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
-        },
-      });
+    // Crea marcadores de puntos de ayuda.
+    //
+    // Las zonas afectadas (variant: "zona") se omiten en este proveedor: aquí
+    // todos los marcadores se dibujan con el mismo círculo, así que una zona
+    // sería indistinguible de un lugar al que se puede acudir. Mejor no
+    // mostrarlas que arriesgar esa confusión.
+    markers
+      .filter((m) => m.variant !== 'zona')
+      .forEach((m) => {
+        const gm = new google.maps.Marker({
+          position: { lat: m.lat, lng: m.lng },
+          map: gmap,
+          title: m.title,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: STATUS_FILL[m.status],
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          },
+        });
 
-      gm.addListener('click', () => {
-        onSelect?.(m.id);
-        infoWindowRef.current?.setContent(buildInfoContent(m.title));
-        infoWindowRef.current?.open(gmap, gm);
-      });
+        gm.addListener('click', () => {
+          onSelect?.(m.id);
+          infoWindowRef.current?.setContent(buildInfoContent(m.title));
+          infoWindowRef.current?.open(gmap, gm);
+        });
 
-      markersRef.current[m.id] = gm;
-    });
+        markersRef.current[m.id] = gm;
+      });
 
     // Marcador de ubicación del usuario (guardado en ref para limpieza)
     if (userLocation) {

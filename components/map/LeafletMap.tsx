@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import type L from 'leaflet';
 import type { LatLng, MapViewProps } from '@/lib/types';
 import { DEFAULT_CITY, DEFAULT_ZOOM } from '@/lib/constants';
-import { createPointIcon, USER_ICON } from './icons';
+import { createPointIcon, createZoneIcon, USER_ICON } from './icons';
 
 // Extiende MapViewProps con las callbacks de estado de tiles que necesita MapView
 interface LeafletMapProps extends MapViewProps {
@@ -118,28 +118,47 @@ export default function LeafletMap({
       {/* Vuela a la ubicación del usuario cuando se obtiene */}
       <UserLocationController userLocation={userLocation} />
 
-      {/* Marcadores de centros de acopio */}
-      {markers.map((m) => (
-        <Marker
-          key={m.id}
-          position={[m.lat, m.lng]}
-          icon={createPointIcon(m.status, m.kind)}
-          ref={(ref) => {
-            if (ref) {
-              markerRefs.current[m.id] = ref;
-            } else {
-              delete markerRefs.current[m.id];
-            }
-          }}
-          eventHandlers={{
-            click: () => onSelect?.(m.id),
-          }}
-        >
-          <Popup>
-            <strong className="text-sm">{m.title}</strong>
-          </Popup>
-        </Marker>
-      ))}
+      {/* Marcadores: puntos de ayuda y zonas afectadas (contexto) */}
+      {markers.map((m) => {
+        const isZone = m.variant === 'zona';
+        return (
+          <Marker
+            key={m.id}
+            position={[m.lat, m.lng]}
+            icon={isZone ? createZoneIcon() : createPointIcon(m.status, m.kind)}
+            // Las zonas quedan por debajo de los puntos de ayuda: si se
+            // superponen, gana el lugar al que sí se puede acudir.
+            zIndexOffset={isZone ? -500 : 0}
+            ref={(ref) => {
+              if (ref) {
+                markerRefs.current[m.id] = ref;
+              } else {
+                delete markerRefs.current[m.id];
+              }
+            }}
+            eventHandlers={{
+              // Una zona no es seleccionable: no hay ficha que abrir.
+              click: () => {
+                if (!isZone) onSelect?.(m.id);
+              },
+            }}
+          >
+            <Popup>
+              <strong className="text-sm">{m.title}</strong>
+              {m.subtitle && (
+                <span className="mt-1 block text-xs leading-snug">
+                  {m.subtitle}
+                </span>
+              )}
+              {isZone && (
+                <span className="mt-1 block text-xs font-semibold leading-snug text-rose-700">
+                  Zona afectada — no es un punto de ayuda.
+                </span>
+              )}
+            </Popup>
+          </Marker>
+        );
+      })}
 
       {/* Marcador de ubicación del usuario */}
       {userLocation && (

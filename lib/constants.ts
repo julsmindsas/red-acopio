@@ -19,6 +19,14 @@ export const MEDELLIN_CENTER = { lat: 6.2476, lng: -75.5658 } as const;
 /** Zoom inicial del mapa para una vista de ciudad. */
 export const DEFAULT_ZOOM = 12;
 
+/**
+ * Zoom para una vista regional (varios municipios en pantalla).
+ *
+ * Se usa cuando la ciudad activa no tiene puntos: a zoom de barrio solo se
+ * verían calles vacías, y el mapa parecería roto.
+ */
+export const REGIONAL_ZOOM = 8;
+
 // ---------------------------------------------------------------------------
 // Emergencia activa
 // ---------------------------------------------------------------------------
@@ -55,6 +63,12 @@ export interface AffectedCity {
   /** Nota corta sobre la afectación, mostrada en el selector. */
   note?: string;
   /**
+   * `true` si la ciudad tiene daño reportado por el sismo. Solo estas se
+   * dibujan en el mapa como zona afectada; Bogotá o Medellín aparecen en el
+   * selector porque desde allí se envía ayuda, no porque estén golpeadas.
+   */
+  damaged?: boolean;
+  /**
    * Canales oficiales de la zona.
    *
    * Existen porque, en las primeras horas, los portales institucionales todavía
@@ -70,6 +84,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     slug: "manizales",
     name: "Manizales",
     department: "Caldas",
+    damaged: true,
     center: { lat: 5.0689, lng: -75.5174 },
     note: "2 fallecidos y más de 10 edificios colapsados. Tres albergues habilitados.",
     channels: [
@@ -80,6 +95,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     slug: "pereira",
     name: "Pereira",
     department: "Risaralda",
+    damaged: true,
     center: { lat: 4.8133, lng: -75.6961 },
     note: "La ciudad más golpeada: el alcalde reportó 18 fallecidos y decenas de personas atrapadas.",
     channels: [
@@ -92,6 +108,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     slug: "armenia",
     name: "Armenia",
     department: "Quindío",
+    damaged: true,
     center: { lat: 4.5339, lng: -75.6811 },
     note: "Evacuaciones en Armenia y varios municipios del Quindío.",
     channels: [
@@ -102,6 +119,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     slug: "cali",
     name: "Cali",
     department: "Valle del Cauca",
+    damaged: true,
     center: { lat: 3.4516, lng: -76.532 },
     note: "Cerca de 20 estructuras colapsadas con personas atrapadas. PMU en la Cruz Roja.",
     channels: [
@@ -113,6 +131,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     slug: "quibdo",
     name: "Quibdó",
     department: "Chocó",
+    damaged: true,
     center: { lat: 5.6947, lng: -76.6611 },
     note: "Heridos y edificaciones colapsadas; el aeropuerto El Caraño resultó afectado.",
     channels: [
@@ -124,6 +143,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     slug: "san-jose-del-palmar",
     name: "San José del Palmar",
     department: "Chocó",
+    damaged: true,
     center: { lat: 4.8964, lng: -76.2286 },
     note: "Epicentro del sismo. La respuesta la encabeza el Gobierno nacional.",
     channels: [

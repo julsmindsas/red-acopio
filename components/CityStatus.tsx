@@ -15,7 +15,19 @@ import type { AffectedCity } from "@/lib/constants";
  * que aún no hay puntos confirmados y manda a los canales que sí están
  * comunicando en vivo — además de a la línea de emergencia.
  */
-export default function CityStatus({ city }: { city: AffectedCity }) {
+export default function CityStatus({
+  city,
+  nearest,
+}: {
+  city: AffectedCity;
+  /** Punto de ayuda más cercano del país, si existe alguno. */
+  nearest: {
+    name: string;
+    city: string | null;
+    km: number;
+    onSelect: () => void;
+  } | null;
+}) {
   return (
     <div className="rounded-2xl border border-accent-300 bg-accent-50 p-5">
       <h2 className="text-base font-bold text-accent-900">
@@ -36,6 +48,29 @@ export default function CityStatus({ city }: { city: AffectedCity }) {
         dirección para esta ciudad. En vez de mostrarte un mapa vacío, te
         dejamos dónde mirar en vivo — y aquí no inventamos puntos.
       </p>
+
+      {/* Dato accionable en vez de un mapa vacío: dónde está lo más cercano */}
+      {nearest && (
+        <button
+          type="button"
+          onClick={nearest.onSelect}
+          className="mt-3 flex w-full min-h-11 items-center gap-3 rounded-xl border border-accent-400 bg-surface px-4 py-3 text-left transition-colors hover:bg-accent-100"
+        >
+          <span aria-hidden="true" className="text-xl">
+            📍
+          </span>
+          <span>
+            <span className="block text-sm font-bold text-foreground">
+              Lo más cercano: {nearest.name}
+            </span>
+            <span className="block text-xs text-foreground/60">
+              A {Math.round(nearest.km)} km
+              {nearest.city ? ` · ${nearest.city}` : ""} · tócalo para verlo en
+              el mapa
+            </span>
+          </span>
+        </button>
+      )}
 
       {city.channels && city.channels.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">

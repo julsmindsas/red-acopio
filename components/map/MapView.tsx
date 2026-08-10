@@ -108,7 +108,7 @@ export default function MapView({
   // nuevo centro: los mapas solo aplican su `center` al construirse, y una
   // animación que falla en silencio deja a la persona mirando otra ciudad.
   // Remontar es feo pero siempre acierta, que es lo que importa aquí.
-  const centerKey = `${center.lat},${center.lng}`;
+  const centerKey = `${center.lat},${center.lng},${zoom}`;
 
   return (
     <div className={`relative h-full w-full ${className ?? ''}`}>

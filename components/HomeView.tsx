@@ -8,6 +8,7 @@ import {
   AFFECTED_CITIES,
   DEFAULT_CITY,
   DEFAULT_ZOOM,
+  REGIONAL_ZOOM,
 } from "@/lib/constants";
 import { haversineKm, nearestPlace, withDistance } from "@/lib/geo";
 import type {
@@ -165,19 +166,39 @@ export default function HomeView({
     [withDist, kindFilter, materialFilter, statusFilter],
   );
 
-  // Marcadores del mapa derivados de la lista filtrada (mapa y lista coinciden).
-  const markers: MapMarker[] = useMemo(
-    () =>
-      filtered.map((c) => ({
-        id: c.id,
-        lat: c.lat,
-        lng: c.lng,
-        title: c.name,
-        status: c.status,
-        kind: c.kind,
-      })),
-    [filtered],
-  );
+  // Marcadores del mapa: los puntos filtrados (mapa y lista coinciden) más las
+  // zonas afectadas como contexto.
+  //
+  // Las zonas existen porque, sin ellas, elegir una ciudad sin puntos deja un
+  // mapa completamente vacío: la app parece rota justo donde más golpeó el
+  // sismo. Van dibujadas de forma distinta y su popup aclara que no son un
+  // lugar al que acudir.
+  const markers: MapMarker[] = useMemo(() => {
+    const points: MapMarker[] = filtered.map((c) => ({
+      id: c.id,
+      lat: c.lat,
+      lng: c.lng,
+      title: c.name,
+      status: c.status,
+      kind: c.kind,
+      variant: "punto",
+    }));
+
+    const zones: MapMarker[] = AFFECTED_CITIES.filter((c) => c.damaged).map(
+      (c) => ({
+        id: `zona-${c.slug}`,
+        lat: c.center.lat,
+        lng: c.center.lng,
+        title: `${c.name}, ${c.department}`,
+        status: "sin_verificar" as const,
+        kind: "acopio" as const,
+        variant: "zona" as const,
+        subtitle: c.note,
+      }),
+    );
+
+    return [...zones, ...points];
+  }, [filtered]);
 
   // --- Selección sincronizada lista <-> mapa ------------------------------
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -231,6 +252,21 @@ export default function HomeView({
       ),
     [centers, activeCity],
   );
+
+  /**
+   * Punto de ayuda más cercano a la ciudad activa, con su distancia.
+   *
+   * Cuando en la ciudad no hay nada, decir "el más cercano está a 180 km, en
+   * Manizales" es información accionable; un mapa vacío no lo es.
+   */
+  const nearestPoint = useMemo(() => {
+    let best: { center: Center; km: number } | null = null;
+    for (const c of centers) {
+      const km = haversineKm({ lat: c.lat, lng: c.lng }, activeCity.center);
+      if (!best || km < best.km) best = { center: c, km };
+    }
+    return best;
+  }, [centers, activeCity]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -434,7 +470,10 @@ export default function HomeView({
               selectedId={selectedId}
               onSelect={handleSelect}
               center={activeCity.center}
-              zoom={DEFAULT_ZOOM}
+              // Sin puntos en la ciudad, un zoom de barrio solo muestra calles
+              // vacías. Se aleja para que entren las zonas afectadas vecinas y
+              // el mapa comunique algo.
+              zoom={cityHasPoints ? DEFAULT_ZOOM : REGIONAL_ZOOM}
               onProviderChange={setMapProvider}
               className="h-full w-full"
             />
@@ -447,7 +486,19 @@ export default function HomeView({
               en vez de dejar la impresión de que allí no pasó nada. */}
           {!cityHasPoints && (
             <div className="mb-4">
-              <CityStatus city={activeCity} />
+              <CityStatus
+                city={activeCity}
+                nearest={
+                  nearestPoint
+                    ? {
+                        name: nearestPoint.center.name,
+                        city: nearestPoint.center.city ?? null,
+                        km: nearestPoint.km,
+                        onSelect: () => handleSelect(nearestPoint.center.id),
+                      }
+                    : null
+                }
+              />
             </div>
           )}
 

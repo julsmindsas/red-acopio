@@ -196,6 +196,19 @@ export interface MapMarker {
   status: VerificationStatus;
   /** Determina el icono del pin (acopio, albergue, brigada médica, agua). */
   kind: PointKind;
+  /**
+   * Qué representa el marcador:
+   *   - `"punto"` (por defecto): un lugar al que se puede acudir.
+   *   - `"zona"`: una ciudad o municipio afectado, dibujado solo como contexto.
+   *
+   * La distinción es crítica: una zona NO es un sitio al que ir. Se dibuja
+   * distinta y su popup lo dice, porque un mapa sin nada donde hubo un sismo
+   * parece roto, pero un contexto confundido con un albergue manda a alguien a
+   * un lugar que no existe.
+   */
+  variant?: "punto" | "zona";
+  /** Línea de contexto para el popup (p. ej. el balance reportado). */
+  subtitle?: string;
 }
 
 /**

@@ -60,6 +60,38 @@ export function createPointIcon(
   });
 }
 
+/**
+ * Ícono de una zona afectada (ciudad o municipio golpeado por el sismo).
+ *
+ * Deliberadamente distinto de un punto de ayuda: rombo translúcido en vez de
+ * círculo sólido, sin el emoji de tipo de punto. Marca dónde ocurrió el daño
+ * para que el mapa nunca aparezca vacío, sin insinuar que ahí hay un lugar al
+ * que acudir.
+ */
+export function createZoneIcon(): L.DivIcon {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      font-size: 13px;
+      line-height: 1;
+      color: #fff;
+      background: rgba(225, 29, 72, 0.82);
+      border: 2px dashed #fecdd3;
+      border-radius: 8px;
+      transform: rotate(45deg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    "><span style="transform: rotate(-45deg)">⚠</span></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -18],
+  });
+}
+
 /** Ícono de posición del usuario: círculo azul con anillo blanco. */
 export const USER_ICON = L.divIcon({
   className: '',
