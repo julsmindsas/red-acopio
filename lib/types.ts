@@ -106,6 +106,12 @@ export interface Center {
   notReceiving?: MaterialCategory[];
   /** Si está funcionando ahora y si puede recibir más. */
   operational: OperationalStatus;
+  /**
+   * Estado según quienes han estado allí hace poco. Ausente si nadie ha
+   * reportado. Complementa a `operational` (que fija el equipo editor) con lo
+   * que ve la gente en el terreno, sin sobreescribirlo.
+   */
+  community?: CommunityStatus;
   /** Horario en texto libre, ej. "Lun-Vie 8:00am-5:00pm". */
   schedule: string;
   lat: number;
@@ -170,6 +176,30 @@ export interface CenterInput {
   lng: number;
   notes?: string | null;
 }
+
+/**
+ * Estado del punto según quienes han estado allí.
+ *
+ * Los datos de una emergencia envejecen en horas: un albergue se llena, un
+ * acopio cierra. La fuente más rápida y fiable es la persona que acaba de pasar
+ * por el sitio, así que la app le deja reportarlo en un toque. Es la misma idea
+ * que hizo útil el mapa de Ushahidi en Haití: quien está en el terreno actualiza.
+ */
+export interface CommunityStatus {
+  /** Estado más reportado en la ventana reciente. */
+  status: OperationalStatus;
+  /** Cuántas personas lo reportaron. */
+  count: number;
+  /** Fecha ISO del reporte más reciente. */
+  lastReportAt: string;
+}
+
+/** Estados que puede reportar la comunidad (subconjunto accionable). */
+export const REPORTABLE_STATUSES = [
+  "recibiendo",
+  "lleno",
+  "cerrado",
+] as const satisfies readonly OperationalStatus[];
 
 /** Un centro enriquecido con la distancia (en km) hasta la ubicación del usuario. */
 export interface CenterWithDistance extends Center {

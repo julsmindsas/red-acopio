@@ -133,7 +133,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     department: "Chocó",
     damaged: true,
     center: { lat: 5.6947, lng: -76.6611 },
-    note: "9 fallecidos y 103 heridos; 862 viviendas afectadas. En todo el Chocó hay unos 3.500 damnificados en 21 municipios.",
+    note: "14 fallecidos, 138 heridos y 5 desaparecidos en el departamento; ~3.500 damnificados en 21 de los 31 municipios.",
     channels: [
       { label: "Gobernación del Chocó", href: "https://www.choco.gov.co/" },
       { label: "Gobernadora en X", href: "https://x.com/NubiaCarolinaCC" },
@@ -160,6 +160,58 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     channels: [
       { label: "Alcaldía de Medellín", href: "https://www.medellin.gov.co/" },
     ],
+  },
+  {
+    slug: "dosquebradas",
+    name: "Dosquebradas",
+    department: "Risaralda",
+    damaged: true,
+    center: { lat: 4.8358, lng: -75.6797 },
+    note: "Municipio vecino de Pereira, también afectado. Banco de Alimentos habilitado como acopio.",
+  },
+  {
+    slug: "buenaventura",
+    name: "Buenaventura",
+    department: "Valle del Cauca",
+    center: { lat: 3.8801, lng: -77.0313 },
+    note: "Uno de los principales puntos de recepción de víveres para la zona del Pacífico.",
+  },
+  // Ciudades sin afectación mayor desde las que se envía ayuda. Aparecen en el
+  // selector para que quien quiera donar encuentre su punto más cercano.
+  {
+    slug: "cartagena",
+    name: "Cartagena",
+    department: "Bolívar",
+    center: { lat: 10.3910, lng: -75.4794 },
+    note: "Sin afectación: tres puntos de acopio para enviar ayuda.",
+  },
+  {
+    slug: "bucaramanga",
+    name: "Bucaramanga",
+    department: "Santander",
+    center: { lat: 7.1193, lng: -73.1227 },
+    note: "Sin afectación: puntos de acopio en la Alcaldía y Centroabastos.",
+  },
+  {
+    slug: "monteria",
+    name: "Montería",
+    department: "Córdoba",
+    center: { lat: 8.7479, lng: -75.8814 },
+    note: "Sin afectación: acopio en el Coliseo Miguel Happy Lora.",
+  },
+  {
+    slug: "santa-marta",
+    name: "Santa Marta",
+    department: "Magdalena",
+    center: { lat: 11.2408, lng: -74.1990 },
+    note: "Sin afectación: acopio en la Oficina de Gestión de Riesgo.",
+  },
+  {
+    slug: "valledupar",
+    name: "Valledupar",
+    department: "Cesar",
+    center: { lat: 10.4631, lng: -73.2532 },
+    note: "Sin afectación: Centro de Solidaridad, que también recibe elementos para mascotas.",
   },
   {
     slug: "barranquilla",

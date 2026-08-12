@@ -11,9 +11,10 @@
  * (oficial) como dos pines. Nuestros centros únicos (sin equivalente oficial
  * cercano) se conservan.
  */
-import type { Center } from "./types";
+import type { Center, CommunityStatus } from "./types";
 import { haversineKm } from "./geo";
 import { getRepository } from "./db";
+import { getCommunityStatuses } from "./db/reports";
 import { fetchOfficialCenters } from "./acopio-api";
 
 /** Radio (km) bajo el cual un centro local se considera duplicado de uno oficial. */
@@ -24,11 +25,16 @@ const DEDUP_RADIUS_KM = 0.15; // 150 m
  * Tolera fallos parciales: si una fuente falla, usa la otra.
  */
 export async function listAllCenters(): Promise<Center[]> {
-  const [official, local] = await Promise.all([
+  const [official, local, community] = await Promise.all([
     fetchOfficialCenters().catch(() => [] as Center[]),
     getRepository()
       .list()
       .catch(() => [] as Center[]),
+    // Reportes de quienes han estado en los puntos. Si falla, la app sigue
+    // funcionando con los datos base.
+    getCommunityStatuses().catch(
+      () => ({}) as Record<string, CommunityStatus>,
+    ),
   ]);
 
   // Copia editable de los oficiales para poder enriquecerlos.
@@ -58,7 +64,11 @@ export async function listAllCenters(): Promise<Center[]> {
     }
   }
 
-  return [...officialEnriched, ...localUnique];
+  // Adjunta el estado reportado por la comunidad, sin sobreescribir el dato
+  // editorial: la UI muestra ambos y deja claro cuál es cuál.
+  return [...officialEnriched, ...localUnique].map((c) =>
+    community[c.id] ? { ...c, community: community[c.id] } : c,
+  );
 }
 
 /** Solo los centros locales (para el panel admin, que únicamente edita los nuestros). */

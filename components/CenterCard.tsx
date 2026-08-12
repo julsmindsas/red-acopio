@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants";
 import { formatDistance } from "@/lib/geo";
 import type { CenterWithDistance } from "@/lib/types";
+import CommunityReport from "./CommunityReport";
 import MaterialChips from "./MaterialChips";
 import StatusBadge from "./StatusBadge";
 
@@ -43,6 +44,26 @@ function telHref(phone: string): string {
 /** Enlace de indicaciones hacia las coordenadas del centro (Google Maps). */
 function directionsHref(lat: number, lng: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+}
+
+/**
+ * Enlace para compartir el punto por WhatsApp.
+ *
+ * En Colombia la información de una emergencia circula por WhatsApp, no por
+ * enlaces a webs. Compartir un punto con su dirección y su mapa hace que llegue
+ * a quien no tiene la app —o no tiene datos para abrirla.
+ */
+function whatsappHref(center: CenterWithDistance): string {
+  const lines = [
+    `${center.name}`,
+    `📍 ${center.address}`,
+    center.phone ? `📞 ${center.phone}` : null,
+    `🗺️ ${directionsHref(center.lat, center.lng)}`,
+    "",
+    "Confirma antes de ir. Vía Red de Acopio.",
+  ].filter(Boolean);
+
+  return `https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
 /**
@@ -249,7 +270,25 @@ export default function CenterCard({
           <span aria-hidden="true">🧭</span>
           Cómo llegar
         </a>
+        <a
+          href={whatsappHref(center)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track("compartir_whatsapp")}
+          aria-label={`Compartir ${center.name} por WhatsApp`}
+          className="flex flex-1 items-center justify-center gap-1.5 border-l border-border px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+        >
+          <span aria-hidden="true">💬</span>
+          Compartir
+        </a>
       </div>
+
+      {/* Reporte comunitario: mantiene vivo el dato que más rápido caduca */}
+      <CommunityReport
+        centerId={center.id}
+        centerName={center.name}
+        community={center.community}
+      />
     </article>
   );
 }

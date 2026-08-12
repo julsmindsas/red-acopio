@@ -19,6 +19,8 @@ La aplicación es **genérica y reutilizable** para cualquier ciudad o emergenci
 ## ✨ Funcionalidades
 
 - 🙋 **Entrada por intención**: un toque para "busco dónde dormir", "necesito atención o agua" o "quiero donar". Los filtros finos quedan plegados para no abrumar a quien acaba de vivir un sismo.
+- 🔄 **Verificación comunitaria en un toque**: quien acaba de pasar por un punto reporta si *sigue abierto*, *está lleno* o *ya cerró*, sin registro ni datos personales. El estado se resuelve por mayoría en una ventana de 12 h, así una sola persona equivocada no marca un albergue como cerrado. Es la lección del mapa de [Ushahidi en Haití](https://www.ushahidi.com/about/blog/crisis-mapping-haiti-some-final-reflections): el dato que caduca en horas solo lo puede mantener quien está en el terreno.
+- 💬 **Compartir por WhatsApp**: cada punto se comparte con dirección, teléfono y enlace al mapa. En Colombia la información de una emergencia circula por ahí, no por enlaces a webs.
 - 🏠 **Cuatro tipos de punto**: albergue, centro de acopio, brigada médica y punto de agua (campo `kind`).
 - 🟠 **Estado operativo** (`recibiendo` · `saturado` · `cerrado`) más **"urge"** y **"no llevar"** por punto: evita el colapso logístico de que todo el mundo lleve lo mismo a un sitio ya lleno.
 - 📍 **Geolocalización** del usuario y **mapa multi-ciudad**: abre en la ciudad afectada más cercana a quien lo consulta, con selector manual.
@@ -181,6 +183,7 @@ Base: `https://red-acopio-two.vercel.app/api/v1`
 | `GET` | `/api/v1/centers` | Lista de puntos. Filtros: `?kind=`, `?operational=`, `?city=`, `?material=`, `?status=`, `?source=all\|official\|local`, `?q=` |
 | `GET` | `/api/v1/centers/{id}` | Un punto por id |
 | `POST` | `/api/v1/centers` | Recomendar un punto (queda como `reportado`) |
+| `POST` | `/api/v1/centers/{id}/report` | Reporte comunitario de estado: `{"status":"recibiendo\|lleno\|cerrado"}`. Sin registro; 1 por dispositivo y punto cada hora |
 
 ```bash
 # Albergues en Manizales

@@ -60,12 +60,21 @@ const MUNICIPIO_FALLBACK: Record<string, { lat: number; lng: number }> = {
   "Cali": { lat: 3.4516, lng: -76.532 },
   "Quibdó": { lat: 5.6947, lng: -76.6611 },
   "San José del Palmar": { lat: 4.8964, lng: -76.2286 },
+  "Dosquebradas": { lat: 4.8358, lng: -75.6797 },
+  "Buenaventura": { lat: 3.8801, lng: -77.0313 },
   // Ciudades desde las que se envía ayuda
   "Bogotá": { lat: 4.711, lng: -74.0721 },
   "Medellín": { lat: 6.2476, lng: -75.5658 },
   "Itagüí": { lat: 6.1721, lng: -75.6116 },
   "Bello": { lat: 6.3378, lng: -75.5578 },
   "Envigado": { lat: 6.17, lng: -75.5847 },
+  "Barranquilla": { lat: 10.9878, lng: -74.7889 },
+  "Cartagena": { lat: 10.391, lng: -75.4794 },
+  "Bucaramanga": { lat: 7.1193, lng: -73.1227 },
+  "Montería": { lat: 8.7479, lng: -75.8814 },
+  "Santa Marta": { lat: 11.2408, lng: -74.199 },
+  "Valledupar": { lat: 10.4631, lng: -73.2532 },
+  "Pailitas": { lat: 8.9553, lng: -73.6262 },
 };
 
 /** Municipio asumido cuando un adaptador no lo declara: el más afectado. */
@@ -277,11 +286,15 @@ interface NormalizeResult {
   precision: Precision;
 }
 
+/**
+ * Normaliza un centro crudo. Devuelve `null` si no se pudo ubicar de forma
+ * fiable: es preferible publicar un punto menos que uno en la ciudad equivocada.
+ */
 async function normalize(
   raw: RawCenter,
   usedIds: Set<string>,
   cache: GeoCacheFile,
-): Promise<NormalizeResult> {
+): Promise<NormalizeResult | null> {
   // ---- id único (slug del nombre) ----
   let id = slugify(raw.name) || "centro";
   if (usedIds.has(id)) {
@@ -320,10 +333,24 @@ async function normalize(
       lng = geo.lng;
       precision = geo.precision;
     } else {
-      // Fallback honesto: centroide del municipio, claramente marcado.
-      const fb =
-        MUNICIPIO_FALLBACK[raw.municipality ?? DEFAULT_MUNICIPIO] ??
-        MUNICIPIO_FALLBACK[DEFAULT_MUNICIPIO];
+      // Cascada de respaldo. El municipio del punto manda SIEMPRE: usar el
+      // centroide de otra ciudad pondría un acopio de Cartagena en Manizales,
+      // a 600 km. Un punto sin ubicación fiable no se publica.
+      const municipio = raw.municipality;
+      const fb = municipio
+        ? (MUNICIPIO_FALLBACK[municipio] ??
+          // 2.º intento: geocodificar solo el municipio.
+          (await geocode(`${municipio}, Colombia`, cache)))
+        : null;
+
+      if (!fb) {
+        console.warn(
+          `    [geo] DESCARTADO "${raw.name}": no se pudo ubicar` +
+            `${municipio ? ` ni el municipio "${municipio}"` : " (sin municipio declarado)"}.`,
+        );
+        return null;
+      }
+
       lat = fb.lat;
       lng = fb.lng;
       precision = "municipio_fallback";
@@ -406,10 +433,13 @@ async function main(): Promise<void> {
     let okThisSource = 0;
     for (const raw of rawCenters) {
       try {
-        const { center, geocoded } = await normalize(raw, usedIds, cache);
-        allCenters.push(center);
+        const result = await normalize(raw, usedIds, cache);
+        // `null` = no se pudo ubicar de forma fiable; ya se avisó por consola.
+        if (!result) continue;
+
+        allCenters.push(result.center);
         okThisSource++;
-        if (geocoded) totalGeocoded++;
+        if (result.geocoded) totalGeocoded++;
       } catch (err) {
         console.error(`   ERROR normalizando "${raw.name}": ${(err as Error).message}`);
       }

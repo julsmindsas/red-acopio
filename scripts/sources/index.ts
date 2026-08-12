@@ -20,6 +20,8 @@ import { semanaManizales } from "./semana-manizales";
 import { elDiarioPereira } from "./eldiario-pereira";
 import { infobaeAcopiosNacionales } from "./infobae-acopios-nacionales";
 import { alcaldiasOficiales } from "./alcaldias-oficiales";
+import { campanaUnSoloCorazon } from "./campana-un-solo-corazon";
+import { elTiempoMapaNacional } from "./eltiempo-mapa-nacional";
 import { portalesOficiales } from "./portales-oficiales";
 
 export const sources: Source[] = [
@@ -27,5 +29,7 @@ export const sources: Source[] = [
   semanaManizales, //           3 albergues (Manizales) — prensa citando a la Alcaldía
   elDiarioPereira, //          13 puntos (Pereira: 6 albergues + 7 acopios) — prensa local
   infobaeAcopiosNacionales, // 12 puntos (Bogotá, Cali, Medellín, Barranquilla, sangre en Manizales)
+  campanaUnSoloCorazon, //      8 puntos, incluido el ÚNICO del Chocó (Quibdó)
+  elTiempoMapaNacional, //     20 puntos del mapa nacional que no traen las otras fuentes
   portalesOficiales, //         0 puntos: monitorea 13 entidades y reporta pistas para curar a mano
 ];
