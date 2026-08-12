@@ -120,8 +120,15 @@ export interface Center {
   city?: string | null;
   /** País (ej. "Colombia"). Opcional; por defecto Colombia en datos locales. */
   country?: string | null;
-  /** Notas o aclaraciones adicionales. */
+  /** Notas o aclaraciones para quien va a acudir al punto. */
   notes: string | null;
+  /**
+   * Detalle de cómo se obtuvo la ubicación (precisión, fuente del
+   * geocodificador). Vive aparte de `notes` porque es información de auditoría,
+   * no un aviso para quien busca dónde dormir: mezclarlos hacía que un párrafo
+   * técnico ocupara más espacio que la dirección.
+   */
+  geoNote?: string | null;
   /** Origen del dato: URL de la fuente, "reporte-ciudadano", "acopiove.org", etc. `null` si se desconoce. */
   source: string | null;
   status: VerificationStatus;

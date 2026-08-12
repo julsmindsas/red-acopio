@@ -359,10 +359,10 @@ async function normalize(
   }
 
   // ---- notas ----
-  const noteParts: string[] = [];
-  if (raw.notes) noteParts.push(raw.notes);
-  noteParts.push(geoNote(precision));
-  const notes = noteParts.length ? noteParts.join(" ") : null;
+  // La nota del adaptador (para quien va a acudir) y la de geocodificación
+  // (auditoría) van en campos distintos: juntas, el detalle técnico terminaba
+  // ocupando más espacio en la tarjeta que la propia dirección.
+  const notes = raw.notes ?? null;
 
   const center: Center = {
     id,
@@ -381,6 +381,7 @@ async function normalize(
     city: raw.municipality ?? null,
     country: "Colombia",
     notes,
+    geoNote: geoNote(precision),
     source: raw.sourceUrl,
     // Prensa citando a una autoridad → "sin_verificar". Publicación de la
     // propia entidad responsable en su canal oficial → "verificado".

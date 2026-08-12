@@ -44,6 +44,7 @@ interface CenterRow {
   city: string | null;
   country: string | null;
   notes: string | null;
+  geo_note: string | null;
   source: string | null;
   status: string;
   created_at: string;
@@ -70,6 +71,7 @@ function rowToCenter(row: CenterRow): Center {
     city: row.city ?? null,
     country: row.country ?? null,
     notes: row.notes,
+    geoNote: row.geo_note ?? null,
     source: row.source,
     status: row.status as Center["status"],
     createdAt: row.created_at,
@@ -117,6 +119,8 @@ export class PostgresStore implements CenterRepository {
     await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS operational text NOT NULL DEFAULT 'desconocido'`;
     await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS urgent_needs jsonb`;
     await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS not_receiving jsonb`;
+    // Detalle de la geocodificación, separado de las notas para el público.
+    await this.sql`ALTER TABLE centers ADD COLUMN IF NOT EXISTS geo_note text`;
   }
 
   /** Devuelve todos los centros ordenados del más reciente al más antiguo. */
@@ -242,15 +246,15 @@ export class PostgresStore implements CenterRepository {
     await this.sql`
       INSERT INTO centers
         (id, name, address, kind, phone, materials, urgent_needs, not_receiving,
-         schedule, lat, lng, city, country, notes, source, status, operational,
-         created_at, updated_at)
+         schedule, lat, lng, city, country, notes, geo_note, source, status,
+         operational, created_at, updated_at)
       VALUES
         (${center.id}, ${center.name}, ${center.address}, ${center.kind},
          ${center.phone ?? null}, ${materials}::jsonb, ${urgentNeeds}::jsonb,
          ${notReceiving}::jsonb, ${center.schedule}, ${center.lat}, ${center.lng},
          ${center.city ?? null}, ${center.country ?? null},
-         ${center.notes ?? null}, ${center.source ?? null}, ${center.status},
-         ${center.operational},
+         ${center.notes ?? null}, ${center.geoNote ?? null},
+         ${center.source ?? null}, ${center.status}, ${center.operational},
          ${center.createdAt}::timestamptz, ${center.updatedAt}::timestamptz)
       ON CONFLICT (id) DO UPDATE SET
         name          = EXCLUDED.name,
@@ -266,6 +270,7 @@ export class PostgresStore implements CenterRepository {
         city          = EXCLUDED.city,
         country       = EXCLUDED.country,
         notes         = EXCLUDED.notes,
+        geo_note      = EXCLUDED.geo_note,
         source        = EXCLUDED.source,
         status        = EXCLUDED.status,
         operational   = EXCLUDED.operational,

@@ -241,6 +241,14 @@ export default function HomeView({
   const [mapProvider, setMapProvider] = useState<MapProviderName>("leaflet");
 
   /**
+   * Qué se ve en móvil: la lista o el mapa.
+   *
+   * Arranca en "lista" porque el dato accionable —nombre, dirección, teléfono—
+   * está ahí; el mapa sirve para orientarse después.
+   */
+  const [mobileView, setMobileView] = useState<"lista" | "mapa">("lista");
+
+  /**
    * ¿Hay algún punto en el área de la ciudad activa? Se mide por distancia
    * (30 km) y no por el campo `city`, que muchas fuentes no publican.
    *
@@ -273,39 +281,29 @@ export default function HomeView({
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* Emergencia: la vía más rápida a los canales oficiales */}
+      {/* Una sola franja superior en vez de dos.
+          Antes había dos avisos apilados —emergencia y postura de datos— que
+          juntos empujaban el primer punto fuera de la pantalla en móvil. El
+          123 se queda porque salva vidas; la advertencia de verificación pasa
+          a la tarjeta de cada punto, que es donde se toma la decisión. */}
       <div className="border-b border-rose-200 bg-rose-50">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 text-xs text-rose-900 sm:text-sm">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2 text-xs text-rose-900 sm:text-sm">
           <span>
-            <span aria-hidden="true">🚨</span>{" "}
-            <strong className="font-semibold">¿Es una emergencia?</strong> Llama
-            al{" "}
-            <a href="tel:123" className="font-bold underline underline-offset-2">
+            <span aria-hidden="true">🚨</span> ¿Emergencia? Llama al{" "}
+            <a
+              href="tel:123"
+              className="text-base font-bold underline underline-offset-2"
+            >
               123
             </a>
-            .
           </span>
           <Link
             href="/ayuda"
             className="font-semibold text-rose-800 underline underline-offset-2 hover:text-rose-900"
           >
-            Buscar a un familiar y otros canales oficiales →
+            Buscar a un familiar →
           </Link>
         </div>
-      </div>
-
-      {/* Aviso global de postura de datos (siempre visible) */}
-      <div className="border-b border-accent-200 bg-accent-50">
-        <p className="mx-auto flex max-w-6xl items-start gap-2 px-4 py-2.5 text-xs leading-relaxed text-accent-900 sm:text-sm">
-          <span aria-hidden="true" className="mt-px shrink-0">
-            🛡️
-          </span>
-          <span>
-            <strong className="font-semibold">Información comunitaria.</strong>{" "}
-            Algunos puntos están <em>sin verificar</em>. Confirma por teléfono
-            antes de acudir o donar.
-          </span>
-        </p>
       </div>
 
       {/* Controles: intención + ubicación + filtros */}
@@ -355,25 +353,9 @@ export default function HomeView({
               </select>
             </label>
 
-            {/* CTA principal: recomendar un punto (botón sólido, bien visible) */}
-            <Link
-              href="/reportar"
-              className="inline-flex h-10 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition-colors hover:bg-brand-700"
-            >
-              <span aria-hidden="true">＋</span>
-              Recomendar un punto
-            </Link>
+            {/* "Recomendar un punto" ya vive en la barra superior: repetirlo
+                aquí competía con los controles que sí usa quien busca ayuda. */}
           </div>
-
-          {/* Contexto de la ciudad activa */}
-          {activeCity.note && (
-            <p className="text-xs text-foreground/60">
-              <strong className="font-semibold text-foreground/75">
-                {activeCity.name}, {activeCity.department}:
-              </strong>{" "}
-              {activeCity.note}
-            </p>
-          )}
 
           {/* Mensajes de estado de la geolocalización */}
           {geoState === "granted" && (
@@ -400,19 +382,29 @@ export default function HomeView({
             </p>
           )}
 
-          {/* Cuántos puntos se están viendo: feedback inmediato y siempre visible.
-              Solo se afirma cercanía cuando hay ubicación real: la lista incluye
-              puntos de todo el país, no solo de la ciudad del mapa. */}
-          <p aria-live="polite" className="px-0.5 text-sm text-foreground/70">
-            {filtered.length === 0
-              ? "No hay puntos que coincidan. Prueba a quitar filtros."
-              : `Mostrando ${filtered.length} ${
-                  filtered.length === 1 ? "punto" : "puntos"
-                }${
-                  userLoc
+          {/* Recuento y contexto de la ciudad en UNA línea: antes eran dos
+              párrafos separados que empujaban la lista hacia abajo.
+              Solo se afirma cercanía cuando hay ubicación real. */}
+          <p aria-live="polite" className="px-0.5 text-sm leading-relaxed">
+            {filtered.length === 0 ? (
+              <span className="text-foreground/70">
+                No hay puntos que coincidan. Prueba a quitar filtros.
+              </span>
+            ) : (
+              <>
+                <strong className="font-bold text-foreground">
+                  {filtered.length} {filtered.length === 1 ? "punto" : "puntos"}
+                </strong>
+                <span className="text-foreground/60">
+                  {userLoc
                     ? ", del más cercano a ti al más lejano."
-                    : `. El mapa está centrado en ${activeCity.name}.`
-                }`}
+                    : ` cerca de ${activeCity.name}.`}
+                </span>
+                {activeCity.note && (
+                  <span className="text-foreground/50"> {activeCity.note}</span>
+                )}
+              </>
+            )}
           </p>
 
           {/* Filtros finos: plegados, para no abrumar a quien solo quiere ver puntos */}
@@ -459,14 +451,46 @@ export default function HomeView({
         </div>
       )}
 
-      {/* Mapa + lista. Mobile: apilados. Desktop: dos columnas, mapa fijo. */}
-      <div className="mx-auto mt-3 w-full max-w-6xl flex-1 px-4 pb-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-6">
-        {/* Mapa: arriba en móvil (orden 1), a la derecha y fijo en desktop (orden 2) */}
-        <section
-          aria-label="Mapa de centros de acopio"
-          className="mb-4 lg:order-2 lg:mb-0 lg:self-start lg:sticky lg:top-20"
+      {/* Móvil: lista o mapa, uno u otro.
+          Antes el mapa ocupaba media pantalla ENCIMA de la lista, así que había
+          que desplazarse para ver el primer punto. Ahora se elige, como en
+          cualquier app de mapas. En escritorio caben los dos y el conmutador
+          desaparece. */}
+      <div className="mx-auto mt-3 w-full max-w-6xl px-4 lg:hidden">
+        <div
+          role="tablist"
+          aria-label="Ver lista o mapa"
+          className="grid grid-cols-2 gap-1 rounded-full border border-border bg-surface-muted p-1"
         >
-          <div className="h-[45vh] overflow-hidden rounded-2xl border border-border shadow-sm lg:h-[calc(100dvh-7rem)]">
+          {(["lista", "mapa"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={mobileView === v}
+              onClick={() => setMobileView(v)}
+              className={`min-h-10 rounded-full text-sm font-bold transition-colors ${
+                mobileView === v
+                  ? "bg-surface text-foreground shadow-sm"
+                  : "text-foreground/60"
+              }`}
+            >
+              {v === "lista" ? "📋 Lista" : "🗺️ Mapa"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mapa + lista. Móvil: uno u otro. Escritorio: dos columnas, mapa fijo. */}
+      <div className="mx-auto mt-3 w-full max-w-6xl flex-1 px-4 pb-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-6">
+        <section
+          aria-label="Mapa de puntos de ayuda"
+          className={`mb-4 lg:order-2 lg:mb-0 lg:block lg:self-start lg:sticky lg:top-20 ${
+            mobileView === "mapa" ? "block" : "hidden"
+          }`}
+        >
+          {/* En móvil el mapa manda: si lo elegiste, ocupa la pantalla. */}
+          <div className="h-[70vh] overflow-hidden rounded-2xl border border-border shadow-sm lg:h-[calc(100dvh-7rem)]">
             <MapView
               markers={markers}
               userLocation={userLoc}
@@ -484,7 +508,12 @@ export default function HomeView({
         </section>
 
         {/* Lista de puntos */}
-        <section aria-label="Lista de puntos de ayuda" className="lg:order-1">
+        <section
+          aria-label="Lista de puntos de ayuda"
+          className={`lg:order-1 lg:block ${
+            mobileView === "lista" ? "block" : "hidden"
+          }`}
+        >
           {/* Sin puntos en esta ciudad: decir qué se sabe y a dónde mirar,
               en vez de dejar la impresión de que allí no pasó nada. */}
           {!cityHasPoints && (

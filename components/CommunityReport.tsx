@@ -48,6 +48,14 @@ export default function CommunityReport({
   const [sent, setSent] = useState<OperationalStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  /**
+   * Los botones arrancan plegados.
+   *
+   * Repetir tres botones en cada una de las 57 tarjetas convertía la lista en
+   * un muro de controles y enterraba lo que la gente vino a leer. Plegado, el
+   * aporte sigue a un toque de distancia para quien acaba de estar allí.
+   */
+  const [open, setOpen] = useState(false);
 
   const report = async (status: OperationalStatus) => {
     if (sending) return;
@@ -104,10 +112,10 @@ export default function CommunityReport({
         <p className="text-xs font-medium text-emerald-700">
           ✓ Gracias. Tu reporte ayuda a quien busque este punto ahora.
         </p>
-      ) : (
+      ) : open ? (
         <>
           <p className="mb-2 text-xs font-semibold text-foreground/70">
-            ¿Estuviste aquí? Ayuda a los demás:
+            ¿Cómo lo encontraste?
           </p>
           <div className="flex flex-wrap gap-2">
             {OPTIONS.map((opt) => (
@@ -130,6 +138,14 @@ export default function CommunityReport({
             </p>
           )}
         </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-xs font-semibold text-brand-700 underline-offset-2 hover:underline"
+        >
+          ¿Estuviste aquí? Cuéntanos cómo está →
+        </button>
       )}
     </div>
   );

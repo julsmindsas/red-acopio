@@ -96,6 +96,22 @@ export default function CenterCard({
   const urgentNeeds = center.urgentNeeds ?? [];
   const notReceiving = center.notReceiving ?? [];
 
+  /**
+   * Nombre sin el prefijo del tipo.
+   *
+   * Las fuentes nombran los puntos "Centro de acopio — Plazoleta Jairo Varela"
+   * o "Albergue temporal — Coliseo Mayor". Con el tipo ya indicado por el icono
+   * y la etiqueta, ese prefijo hacía que todas las tarjetas empezaran igual y
+   * el nombre real quedara desplazado a la segunda línea.
+   */
+  const displayName = center.name.replace(
+    /^(Centro de acopio|Albergue temporal|Albergue|Donación de sangre|Centro de Solidaridad)\s*[—–-]\s*/i,
+    "",
+  );
+
+  /** Ubicación no exacta: se avisa con una etiqueta, no con un párrafo. */
+  const isApproximate = /APROXIMADA/i.test(center.geoNote ?? "");
+
   // Origen del dato para la atribución:
   //  - oficial: proviene de la red acopiove.org (o cualquier fuente read-only).
   //  - comunitario: aporte ciudadano aún pendiente de revisión.
@@ -118,25 +134,43 @@ export default function CenterCard({
         onClick={() => onSelect(center.id)}
         className="block w-full cursor-pointer p-4 text-left"
       >
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-bold leading-snug text-foreground">
-            {center.name}
-          </h3>
-          {distance && (
-            <span className="shrink-0 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-foreground/70">
-              a {distance}
-            </span>
-          )}
+        {/* 1. QUÉ ES + A QUÉ DISTANCIA — el icono hace de ancla visual para
+            poder barrer la lista sin leer. */}
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden="true"
+            className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-xl"
+          >
+            {kindMeta.emoji}
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[17px] font-bold leading-tight text-foreground">
+              {displayName}
+            </h3>
+            {/* Una sola línea de contexto en vez de cuatro badges sueltos */}
+            <p className="mt-0.5 text-xs font-medium text-foreground/55">
+              {kindMeta.label}
+              {center.city ? ` · ${center.city}` : ""}
+              {distance ? ` · a ${distance}` : ""}
+            </p>
+          </div>
         </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          {/* Qué es el punto: lo primero que necesita saber quien busca refugio */}
-          <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-foreground/75">
-            <span aria-hidden="true">{kindMeta.emoji}</span>
-            {kindMeta.label}
-          </span>
-          <StatusBadge status={center.status} />
-          {/* Estado operativo: solo cuando aporta información */}
+        {/* 2. DIRECCIÓN — el dato por el que la persona abrió la tarjeta. */}
+        <p className="mt-3 text-[15px] font-medium leading-snug text-foreground">
+          {center.address}
+        </p>
+        {/* "Horario no publicado" no informa nada: se omite y la línea se ahorra. */}
+        {!/no publicado/i.test(center.schedule) && (
+          <p className="mt-0.5 text-[13px] text-foreground/60">
+            {center.schedule}
+          </p>
+        )}
+
+        {/* 3. ESTADO — solo lo que cambia una decisión: si está saturado o si
+            el dato no está confirmado. */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           {center.operational !== "desconocido" && (
             <span
               title={opMeta.description}
@@ -146,31 +180,21 @@ export default function CenterCard({
               {opMeta.label}
             </span>
           )}
-          {center.city && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground/55">
-              <span aria-hidden="true">🏙️</span>
-              {center.city}
+          <StatusBadge status={center.status} />
+          {isApproximate && (
+            <span
+              title={center.geoNote ?? undefined}
+              className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-foreground/60"
+            >
+              <span aria-hidden="true">📍</span>
+              Ubicación aproximada
             </span>
           )}
         </div>
 
-        <p className="mt-2 flex items-start gap-1.5 text-sm text-foreground/75">
-          <span aria-hidden="true" className="mt-0.5 shrink-0">
-            📍
-          </span>
-          {center.address}
-        </p>
-
-        <p className="mt-1 flex items-start gap-1.5 text-sm text-foreground/75">
-          <span aria-hidden="true" className="mt-0.5 shrink-0">
-            🕒
-          </span>
-          {center.schedule}
-        </p>
-
         {center.materials.length > 0 && (
-          <div className="mt-3">
-            <MaterialChips materials={center.materials} />
+          <div className="mt-2.5">
+            <MaterialChips materials={center.materials} max={3} />
           </div>
         )}
 
@@ -200,63 +224,25 @@ export default function CenterCard({
           </p>
         )}
 
-        {/* Aviso de precaución para centros no verificados */}
-        {!isVerified && (
-          <p className="mt-3 flex items-start gap-2 rounded-lg border border-accent-300 bg-accent-50 px-3 py-2 text-xs leading-relaxed text-accent-900">
-            <span aria-hidden="true" className="mt-px shrink-0">
-              ⚠️
-            </span>
-            <span>
-              {center.notes?.trim()
-                ? center.notes
-                : STATUS_META[center.status].description}
-            </span>
+        {/* 4. NOTA — solo si aporta algo que no está ya arriba. Se recorta a
+            dos líneas: el detalle completo vive en la ficha de la fuente. */}
+        {center.notes?.trim() && (
+          <p className="mt-2.5 line-clamp-2 text-[13px] leading-relaxed text-foreground/65">
+            {center.notes}
           </p>
         )}
+
+        {/* El aviso de "sin verificar" NO se repite aquí: la insignia de arriba
+            ya lo dice y su tooltip lo explica. Repetirlo en 54 de 57 tarjetas
+            lo convertía en ruido de fondo, que es justo cómo se pierde una
+            advertencia importante. */}
       </button>
 
-      {/* Atribución de fuente (fuera del botón para no anidar interactivos) */}
-      {isOfficial ? (
-        <p className="-mt-1 px-4 pb-3">
-          <a
-            href="https://acopiove.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/50 transition-colors hover:text-brand-700 hover:underline"
-          >
-            <span aria-hidden="true">🔗</span>
-            Fuente: acopiove.org
-          </a>
-        </p>
-      ) : isCommunity ? (
-        <p className="-mt-1 px-4 pb-3">
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/50">
-            <span aria-hidden="true">👥</span>
-            Reporte comunitario
-          </span>
-        </p>
-      ) : null}
-
-      {/* Acciones: enlaces independientes con touch targets amplios */}
-      <div className="flex border-t border-border">
-        {center.phone ? (
-          <a
-            href={telHref(center.phone)}
-            onClick={() => {
-              track("llamar", { fuente: isOfficial ? "oficial" : "comunidad" });
-              recordVisit(center.id, center.name);
-            }}
-            className="flex flex-1 items-center justify-center gap-1.5 px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
-          >
-            <span aria-hidden="true">📞</span>
-            Llamar
-          </a>
-        ) : (
-          <span className="flex flex-1 items-center justify-center gap-1.5 px-3 py-3 text-sm font-medium text-foreground/40">
-            <span aria-hidden="true">📞</span>
-            Sin teléfono
-          </span>
-        )}
+      {/* ACCIONES — una principal, dos de apoyo.
+          "Cómo llegar" es lo que casi todo el mundo necesita: va sólida y
+          ocupa el ancho. Llamar y compartir quedan como iconos, y el botón
+          muerto de "Sin teléfono" desaparece cuando no hay número. */}
+      <div className="flex items-stretch gap-2 px-4 pb-4">
         <a
           href={directionsHref(center.lat, center.lng)}
           target="_blank"
@@ -265,21 +251,37 @@ export default function CenterCard({
             track("como_llegar", { fuente: isOfficial ? "oficial" : "comunidad" });
             recordVisit(center.id, center.name);
           }}
-          className="flex flex-1 items-center justify-center gap-1.5 border-l border-border px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+          className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm shadow-brand-600/25 transition-colors hover:bg-brand-700"
         >
           <span aria-hidden="true">🧭</span>
           Cómo llegar
         </a>
+
+        {center.phone && (
+          <a
+            href={telHref(center.phone)}
+            onClick={() => {
+              track("llamar", { fuente: isOfficial ? "oficial" : "comunidad" });
+              recordVisit(center.id, center.name);
+            }}
+            aria-label={`Llamar a ${displayName}`}
+            title={`Llamar: ${center.phone}`}
+            className="flex min-h-12 w-12 items-center justify-center rounded-xl border border-border bg-surface text-lg transition-colors hover:border-brand-400 hover:bg-brand-50"
+          >
+            <span aria-hidden="true">📞</span>
+          </a>
+        )}
+
         <a
           href={whatsappHref(center)}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => track("compartir_whatsapp")}
-          aria-label={`Compartir ${center.name} por WhatsApp`}
-          className="flex flex-1 items-center justify-center gap-1.5 border-l border-border px-3 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+          aria-label={`Compartir ${displayName} por WhatsApp`}
+          title="Compartir por WhatsApp"
+          className="flex min-h-12 w-12 items-center justify-center rounded-xl border border-border bg-surface text-lg transition-colors hover:border-brand-400 hover:bg-brand-50"
         >
           <span aria-hidden="true">💬</span>
-          Compartir
         </a>
       </div>
 
