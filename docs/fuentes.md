@@ -21,31 +21,53 @@
 **Manizales** (municipio más golpeado), **Pereira**, **Armenia**, **Cali** y
 **Quibdó**. La Alcaldía de Manizales habilitó albergues temporales el mismo día.
 
-### Fuentes activas
+### Fuentes activas (actualizado 2026-08-11)
 
 | Fuente | Adaptador | Qué aporta | Estado |
 |--------|-----------|------------|--------|
-| Semana — declaraciones del alcalde de Manizales ([nota](https://www.semana.com/nacion/articulo/alcalde-de-manizales-reporta-dos-personas-muertas-mas-de-10-edificios-colapsados-y-muchas-viviendas-afectadas-estamos-atendiendo-este-desastre/202623/)) | `semana-manizales.ts` | 3 albergues (Coliseo Mayor, Coliseo Menor, coliseo de Aranjuez) | `sin_verificar` |
-| Alcaldías de Manizales, Pereira y Cali; Gobernación del Chocó; UNGRD | `portales-oficiales.ts` | **0 puntos**: monitorea los portales y reporta publicaciones sobre acopio/albergues para curarlas a mano | — |
+| **Alcaldía de Cali** ([nota](https://www.cali.gov.co/publicaciones/193608/solidaridad-calena-se-toma-el-centro-de-acopio-de-la-plazoleta-jairo-varela/)) y **Gobernación del Quindío** ([nota](https://quindio.gov.co/un-llamado-a-la-solidaridad-el-centro-de-convenciones-se-transforma-en-el-centro-de-acopio-para-ayudas-a-afectados-por-el-sismo-2)) | `alcaldias-oficiales.ts` | 3 acopios (Plazoleta Jairo Varela, Escuela Nacional del Deporte, Centro de Convenciones de Armenia) | **`verificado`** |
+| Semana — alcalde de Manizales ([nota](https://www.semana.com/nacion/articulo/alcalde-de-manizales-reporta-dos-personas-muertas-mas-de-10-edificios-colapsados-y-muchas-viviendas-afectadas-estamos-atendiendo-este-desastre/202623/)) | `semana-manizales.ts` | 3 albergues (Coliseo Mayor, Coliseo Menor, SIC de Aranjuez) | `sin_verificar` |
+| El Diario, Pereira ([nota](https://www.eldiario.com.co/actualidad/emergencia-en-pereira-avanzan-labores-de-busqueda-y-rescate/)) | `eldiario-pereira.ts` | 13 puntos: 6 albergues + 7 centros de acopio en Centros de Desarrollo Empresarial | `sin_verificar` |
+| Infobae — guía nacional ([nota](https://www.infobae.com/colombia/2026/08/10/centros-de-acopio-habilitados-en-colombia-tras-el-terremoto-guia-por-ciudad-para-donar-y-ayudar-a-las-victimas/)) | `infobae-acopios-nacionales.ts` | 12 puntos: Bogotá (6), Cali (1), Medellín (2), Barranquilla (1) y 2 puntos de donación de sangre en Manizales | `sin_verificar` |
+| 13 alcaldías, gobernaciones, UNGRD y Cruz Roja | `portales-oficiales.ts` | **0 puntos**: monitorea los portales y reporta publicaciones para curarlas a mano | — |
 
-### Qué NO se encontró (y por qué no hay más puntos)
+**Total: 31 puntos** (3 `verificado`, 28 `sin_verificar`).
 
-Al día del sismo, **ninguna alcaldía ni la UNGRD había publicado un listado de
-centros de acopio** para esta emergencia. Escribir un parser contra páginas que
-aún no existen habría producido datos inventados, así que el adaptador
-`portales-oficiales` se limita a vigilar y avisar. En la primera corrida:
+### Cómo se distingue `verificado` de `sin_verificar`
 
-- Alcaldía de Manizales, Alcaldía de Cali, Gobernación del Chocó: sin publicaciones relevantes.
-- Alcaldía de Pereira: responde **HTTP 403** al scraper (bloqueo de bots).
-- UNGRD: no respondió a la descarga automática.
+- **`verificado`**: lo publicó la propia entidad responsable en su portal
+  (`official: true` en el adaptador). Hoy: Alcaldía de Cali y Gobernación del
+  Quindío.
+- **`sin_verificar`**: lo publicó la prensa citando a una autoridad. Es
+  información útil, pero nadie de este proyecto la confirmó con la entidad.
+
+### Evolución del primer día
+
+El **10 de agosto** ninguna entidad había publicado listados: solo existían los
+tres albergues de Manizales, citados por prensa. El monitor `portales-oficiales`
+se limitó a vigilar en vez de inventar un parser contra páginas inexistentes.
+
+El **11 de agosto** ese monitor detectó las publicaciones de Cali y del Quindío,
+que se curaron a mano. Es el flujo previsto: vigilar → detectar → curar.
+
+Sigue sin publicarse nada en el **Chocó** (epicentro), pese a los ~3.500
+damnificados en 21 municipios. Tres portales (Pereira, Risaralda, Valle del
+Cauca) responden **HTTP 403** al scraper y hay que abrirlos a mano.
 
 ### Precisión de la geocodificación
 
-| Punto | Precisión | Detalle |
-|-------|-----------|---------|
-| Coliseo Mayor | Punto exacto (POI) | Existe en OpenStreetMap |
-| Coliseo Menor | Punto exacto (POI) | Existe en OpenStreetMap |
-| Coliseo de Aranjuez | **Aproximada** | No figura en OSM: se usa el centroide del barrio Aranjuez y se advierte en las notas |
+30 de 31 puntos se geocodificaron; el restante usa el centroide de su municipio
+y lo advierte. Casos que exigieron corrección manual:
+
+| Punto | Problema | Solución |
+|-------|----------|----------|
+| CDE 2.500 Lotes (Pereira) | Nominatim devolvía un conjunto residencial de **Puerto Caldas, a 20 km** del barrio real | Se geocodifica la comuna Villa Santana y se advierte que es aproximado |
+| Parque El Vergel (Pereira) | El parque no está en OSM; caía al centroide del municipio | Se geocodifica el barrio El Vergel (~1 km) |
+| SIC de Aranjuez (Manizales) | No figura en OSM | Centroide del barrio Aranjuez, advertido en las notas |
+| Escuela Nacional del Deporte (Cali) | No figura en OSM | Centroide del municipio, marcado **MUY APROXIMADA** |
+
+> El caso de "2.500 Lotes" ilustra por qué se revisa la geocodificación punto por
+> punto: el resultado *parecía* válido y habría enviado gente 20 km al oeste.
 
 ### Canales oficiales de ayuda
 

@@ -47,6 +47,14 @@ export interface RawCenter {
   lng?: number;
   /** Notas/aclaraciones que el adaptador quiera dejar (ej. dirección aproximada). */
   notes?: string;
+  /**
+   * `true` solo si el punto lo publica la PROPIA entidad responsable en su
+   * canal oficial (alcaldía, gobernación, Cruz Roja), no un medio citándola.
+   * En ese caso el orquestador lo marca `verificado` en vez de `sin_verificar`.
+   */
+  official?: boolean;
+  /** Lo que el punto pidió NO seguir recibiendo, si la fuente lo publica. */
+  notReceiving?: string[];
 
   // --------------------------------------------------------------------------
   // Campos OPCIONALES de ayuda (extensión del scraper; no son parte del

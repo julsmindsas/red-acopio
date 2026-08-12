@@ -86,7 +86,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     department: "Caldas",
     damaged: true,
     center: { lat: 5.0689, lng: -75.5174 },
-    note: "2 fallecidos y más de 10 edificios colapsados. Tres albergues habilitados.",
+    note: "5 fallecidos, 78 heridos y unos 4.000 damnificados. Tres albergues habilitados.",
     channels: [
       { label: "Alcaldía de Manizales", href: "https://manizales.gov.co/" },
     ],
@@ -97,7 +97,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     department: "Risaralda",
     damaged: true,
     center: { lat: 4.8133, lng: -75.6961 },
-    note: "La ciudad más golpeada: el alcalde reportó 18 fallecidos y decenas de personas atrapadas.",
+    note: "73 fallecidos, 85 heridos y 37 desaparecidos; 66 edificios con colapso total. Seis albergues y siete centros de acopio.",
     channels: [
       { label: "Alcaldía de Pereira", href: "https://www.pereira.gov.co/" },
       { label: "Alcaldía en X", href: "https://x.com/Alcaldiapereira" },
@@ -110,7 +110,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     department: "Quindío",
     damaged: true,
     center: { lat: 4.5339, lng: -75.6811 },
-    note: "Evacuaciones en Armenia y varios municipios del Quindío.",
+    note: "174 heridos y 5 edificios colapsados. El aeropuerto suspendió operaciones.",
     channels: [
       { label: "Alcaldía de Armenia", href: "https://www.armenia.gov.co/" },
     ],
@@ -121,7 +121,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     department: "Valle del Cauca",
     damaged: true,
     center: { lat: 3.4516, lng: -76.532 },
-    note: "Cerca de 20 estructuras colapsadas con personas atrapadas. PMU en la Cruz Roja.",
+    note: "95 fallecidos, 949 heridos y 239 personas atrapadas; 56 estructuras colapsadas y 10 hospitales fuera de servicio.",
     channels: [
       { label: "Alcaldía de Cali", href: "https://www.cali.gov.co/" },
       { label: "Alcaldía en X", href: "https://x.com/AlcaldiaDeCali" },
@@ -133,7 +133,7 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     department: "Chocó",
     damaged: true,
     center: { lat: 5.6947, lng: -76.6611 },
-    note: "Heridos y edificaciones colapsadas; el aeropuerto El Caraño resultó afectado.",
+    note: "9 fallecidos y 103 heridos; 862 viviendas afectadas. En todo el Chocó hay unos 3.500 damnificados en 21 municipios.",
     channels: [
       { label: "Gobernación del Chocó", href: "https://www.choco.gov.co/" },
       { label: "Gobernadora en X", href: "https://x.com/NubiaCarolinaCC" },
@@ -162,11 +162,21 @@ export const AFFECTED_CITIES: AffectedCity[] = [
     ],
   },
   {
+    slug: "barranquilla",
+    name: "Barranquilla",
+    department: "Atlántico",
+    center: { lat: 10.9878, lng: -74.7889 },
+    note: "Sin afectación: centro de acopio abierto 24 horas para enviar ayuda.",
+    channels: [
+      { label: "Alcaldía de Barranquilla", href: "https://www.barranquilla.gov.co/" },
+    ],
+  },
+  {
     slug: "bogota",
     name: "Bogotá",
     department: "Cundinamarca",
     center: { lat: 4.7110, lng: -74.0721 },
-    note: "Sede del PMU nacional. La ciudad envió 100 rescatistas a las zonas afectadas.",
+    note: "Sede del PMU nacional. Seis centros de acopio y 100 rescatistas enviados a las zonas afectadas.",
     channels: [
       { label: "UNGRD", href: "https://portal.gestiondelriesgo.gov.co/" },
       { label: "Alcaldía de Bogotá", href: "https://bogota.gov.co/" },

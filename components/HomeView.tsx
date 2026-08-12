@@ -93,6 +93,22 @@ export default function HomeView({
     );
   }, []);
 
+  // --- Ciudad activa -------------------------------------------------------
+  // Sin ubicación, el mapa abre en la ciudad más afectada; con ubicación, en la
+  // más cercana a la persona. Una selección manual siempre manda.
+  //
+  // Se declara antes que los derivados porque también ordena la lista: quien
+  // está viendo Pereira no debería recibir primero los puntos de Manizales.
+  const [manualCity, setManualCity] = useState<string | null>(null);
+
+  const activeCity = useMemo(() => {
+    if (manualCity) {
+      const picked = AFFECTED_CITIES.find((c) => c.slug === manualCity);
+      if (picked) return picked;
+    }
+    return nearestPlace(AFFECTED_CITIES, userLoc) ?? DEFAULT_CITY;
+  }, [manualCity, userLoc]);
+
   // --- Filtros (extensibles) ----------------------------------------------
   // Cada filtro es un Set independiente. Set vacío = sin filtrar por ese criterio.
   // Para añadir un filtro nuevo, agrega aquí su estado y aplícalo en `filtered`.
@@ -145,8 +161,8 @@ export default function HomeView({
 
   // --- Derivados: distancia + filtrado ------------------------------------
   const withDist = useMemo(
-    () => withDistance(centers, userLoc),
-    [centers, userLoc],
+    () => withDistance(centers, userLoc, activeCity.center),
+    [centers, userLoc, activeCity],
   );
 
   const filtered = useMemo(
@@ -223,19 +239,6 @@ export default function HomeView({
 
   // --- Aviso de cambio de proveedor de mapa -------------------------------
   const [mapProvider, setMapProvider] = useState<MapProviderName>("leaflet");
-
-  // --- Ciudad activa -------------------------------------------------------
-  // Sin ubicación, el mapa abre en la ciudad más afectada; con ubicación, en la
-  // más cercana a la persona. Una selección manual siempre manda.
-  const [manualCity, setManualCity] = useState<string | null>(null);
-
-  const activeCity = useMemo(() => {
-    if (manualCity) {
-      const picked = AFFECTED_CITIES.find((c) => c.slug === manualCity);
-      if (picked) return picked;
-    }
-    return nearestPlace(AFFECTED_CITIES, userLoc) ?? DEFAULT_CITY;
-  }, [manualCity, userLoc]);
 
   /**
    * ¿Hay algún punto en el área de la ciudad activa? Se mide por distancia

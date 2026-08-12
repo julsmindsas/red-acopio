@@ -56,18 +56,20 @@ const CENTERS: RawCenter[] = [
       "Reportado como uno de los tres albergues que la Alcaldía estaba montando. No se ha confirmado que ya esté operando: consulta antes de trasladarte.",
   },
   {
-    name: "Albergue temporal — Coliseo del barrio Aranjuez",
+    // Corregido el 2026-08-11: la guía nacional lo nombra "SIC de Aranjuez",
+    // no "coliseo del barrio Aranjuez" como se leyó el primer día.
+    name: "Albergue temporal — SIC de Aranjuez",
     kind: "albergue",
-    address: "Barrio Aranjuez, Comuna Universitaria, Manizales, Caldas",
-    schedule: "En montaje tras el sismo del 10 de agosto de 2026",
+    address: "SIC de Aranjuez, Comuna Universitaria, Manizales, Caldas",
+    schedule: "Habilitado tras el sismo del 10 de agosto de 2026",
     sourceUrl: URL,
     municipality: "Manizales",
-    // El coliseo no figura como punto en OpenStreetMap: geocodificamos el
+    // El equipamiento no figura como punto en OpenStreetMap: geocodificamos el
     // barrio y lo advertimos en las notas en vez de fingir precisión.
     geoQuery: "Aranjuez, Manizales, Caldas, Colombia",
     verifyToken: "Aranjuez",
     notes:
-      "Reportado como uno de los tres albergues en montaje. UBICACIÓN APROXIMADA: el coliseo no está en OpenStreetMap, así que el punto usa el centroide del barrio Aranjuez. Confirma la dirección exacta antes de trasladarte.",
+      "Uno de los tres albergues habilitados por la Alcaldía de Manizales. UBICACIÓN APROXIMADA: el equipamiento no está en OpenStreetMap, así que el punto usa el centroide del barrio Aranjuez. Confirma la dirección exacta antes de trasladarte.",
   },
 ];
 

@@ -349,12 +349,18 @@ async function normalize(
     schedule: raw.schedule ?? "Horario no publicado",
     lat,
     lng,
+    // Sin ciudad, el filtro `?city=` de la API y la etiqueta de la tarjeta se
+    // quedan vacíos, aunque el adaptador sí sepa el municipio.
+    city: raw.municipality ?? null,
+    country: "Colombia",
     notes,
     source: raw.sourceUrl,
-    // Es scraping de prensa: por defecto "sin_verificar". Solo se subiría a
-    // "verificado" si la fuente fuera oficial (gobierno/Cruz Roja) y listara
-    // explícitamente el centro; no es el caso de ninguna fuente activa.
-    status: "sin_verificar",
+    // Prensa citando a una autoridad → "sin_verificar". Publicación de la
+    // propia entidad responsable en su canal oficial → "verificado".
+    status: raw.official ? "verificado" : "sin_verificar",
+    ...(raw.notReceiving
+      ? { notReceiving: mapMaterials(raw.notReceiving) }
+      : {}),
     createdAt: FIXED_DATE,
     updatedAt: FIXED_DATE,
   };

@@ -17,9 +17,15 @@
 
 import type { Source } from "./types";
 import { semanaManizales } from "./semana-manizales";
+import { elDiarioPereira } from "./eldiario-pereira";
+import { infobaeAcopiosNacionales } from "./infobae-acopios-nacionales";
+import { alcaldiasOficiales } from "./alcaldias-oficiales";
 import { portalesOficiales } from "./portales-oficiales";
 
 export const sources: Source[] = [
-  semanaManizales, //   3 albergues (Manizales) — prensa citando a la Alcaldía, sin_verificar
-  portalesOficiales, // 0 centros: monitorea alcaldías y UNGRD y reporta pistas para curar a mano
+  alcaldiasOficiales, //        3 puntos (Cali, Armenia) — publicación oficial, verificado
+  semanaManizales, //           3 albergues (Manizales) — prensa citando a la Alcaldía
+  elDiarioPereira, //          13 puntos (Pereira: 6 albergues + 7 acopios) — prensa local
+  infobaeAcopiosNacionales, // 12 puntos (Bogotá, Cali, Medellín, Barranquilla, sangre en Manizales)
+  portalesOficiales, //         0 puntos: monitorea 13 entidades y reporta pistas para curar a mano
 ];

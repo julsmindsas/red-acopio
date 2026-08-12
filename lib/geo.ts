@@ -34,9 +34,25 @@ export function haversineKm(a: LatLng, b: LatLng): number {
 export function withDistance(
   centers: Center[],
   from: LatLng | null,
+  /**
+   * Origen alternativo para ORDENAR cuando no hay ubicación del usuario
+   * (normalmente, el centro de la ciudad elegida en el mapa).
+   *
+   * Ordenar por él evita que quien está viendo Pereira reciba primero los
+   * puntos de Manizales. La distancia sigue en `null`: solo se muestra un
+   * "a X km" cuando de verdad se mide desde donde está la persona.
+   */
+  fallbackOrigin?: LatLng | null,
 ): CenterWithDistance[] {
   if (!from) {
-    return centers.map((c) => ({ ...c, distanceKm: null }));
+    const withNullDistance = centers.map((c) => ({ ...c, distanceKm: null }));
+    if (!fallbackOrigin) return withNullDistance;
+
+    return withNullDistance.sort(
+      (a, b) =>
+        haversineKm(fallbackOrigin, { lat: a.lat, lng: a.lng }) -
+        haversineKm(fallbackOrigin, { lat: b.lat, lng: b.lng }),
+    );
   }
 
   return centers
