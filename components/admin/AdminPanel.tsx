@@ -5,6 +5,7 @@ import { fetchSession, logout } from "./api";
 import { Banner, Spinner } from "./ui";
 import LoginForm from "./LoginForm";
 import Dashboard from "./Dashboard";
+import HogaresPanel from "./hogares/HogaresPanel";
 
 /*
  * Contenedor del panel administrativo (raíz cliente).
@@ -24,15 +25,20 @@ import Dashboard from "./Dashboard";
 
 type Phase = "loading" | "unconfigured" | "login" | "dashboard" | "error";
 
+/** Pestañas del dashboard: centros de acopio u hogares de paso. */
+type Tab = "centros" | "hogares";
+
 export default function AdminPanel() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [error, setError] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [tab, setTab] = useState<Tab>("centros");
 
-  // Vuelve a consultar el estado de sesión y ajusta la fase.
+  // Vuelve a consultar el estado de sesión y ajusta la fase. Sin setState
+  // síncrono antes del `await`: se invoca desde el efecto de montaje y la
+  // regla react-hooks/set-state-in-effect lo veta ("loading" ya es la fase
+  // inicial, así que el spinner de arranque no lo necesita).
   const refresh = useCallback(async () => {
-    setPhase("loading");
-    setError(null);
     const res = await fetchSession();
     if (!res.ok) {
       setError(res.error);
@@ -46,8 +52,12 @@ export default function AdminPanel() {
     setPhase(res.data.authenticated ? "dashboard" : "login");
   }, []);
 
+  // Disparo diferido de la consulta inicial: la regla
+  // react-hooks/set-state-in-effect veta invocar directamente en el efecto
+  // una función que hace setState; dentro del callback del timer sí es válido.
   useEffect(() => {
-    void refresh();
+    const t = setTimeout(() => void refresh(), 0);
+    return () => clearTimeout(t);
   }, [refresh]);
 
   const handleLogout = useCallback(async () => {
@@ -111,7 +121,12 @@ export default function AdminPanel() {
               {error ?? "No se pudo verificar la sesión."}{" "}
               <button
                 type="button"
-                onClick={() => void refresh()}
+                onClick={() => {
+                  // Reintento manual: aquí sí volvemos al spinner (evento).
+                  setError(null);
+                  setPhase("loading");
+                  void refresh();
+                }}
                 className="font-semibold underline underline-offset-2"
               >
                 Reintentar
@@ -140,7 +155,44 @@ export default function AdminPanel() {
 
         {phase === "login" && <LoginForm onAuthenticated={refresh} />}
 
-        {phase === "dashboard" && <Dashboard onSessionLost={() => setPhase("login")} />}
+        {phase === "dashboard" && (
+          <>
+            {/* Pestañas: centros de acopio / hogares de paso */}
+            <div
+              role="tablist"
+              aria-label="Secciones del panel"
+              className="mb-5 flex gap-1 rounded-full border border-border bg-surface-muted/60 p-1"
+            >
+              {(
+                [
+                  { id: "centros", label: "🏥 Centros" },
+                  { id: "hogares", label: "🏡 Hogares de paso" },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`h-10 flex-1 rounded-full text-sm font-semibold transition-colors ${
+                    tab === t.id
+                      ? "bg-surface text-foreground shadow-sm"
+                      : "text-foreground/60 hover:text-foreground"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {tab === "centros" ? (
+              <Dashboard onSessionLost={() => setPhase("login")} />
+            ) : (
+              <HogaresPanel onSessionLost={() => setPhase("login")} />
+            )}
+          </>
+        )}
       </main>
     </>
   );

@@ -10,6 +10,12 @@
  * o un fallo de red, sin envolver cada llamada en try/catch.
  */
 import type { Center, CenterPatch } from "@/lib/types";
+import type {
+  Hogar,
+  HogarPatch,
+  SolicitudHogar,
+  SolicitudPatch,
+} from "@/lib/hogares/types";
 
 /** Estado de la sesión administrativa que reporta el servidor. */
 export interface SessionState {
@@ -211,6 +217,127 @@ export async function deleteCenter(id: string): Promise<Result<true>> {
         : "No se pudo eliminar el centro.";
     const { error } = await readError(res, fallback);
     return { ok: false, status: res.status, error };
+  } catch {
+    return NET_ERROR;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Hogares de Paso (panel coordinador; todas requieren la cookie de sesión)   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * GET /api/hogares?todos=1 — TODOS los hogares con sus datos privados
+ * (nombre, teléfono, documento, dirección). Solo funciona autenticado; sin
+ * `todos=1` el endpoint devuelve la proyección pública.
+ */
+export async function getHogares(): Promise<Result<Hogar[]>> {
+  try {
+    const res = await fetch("/api/hogares?todos=1", COMMON);
+    if (res.ok) return { ok: true, data: (await res.json()) as Hogar[] };
+    return {
+      ok: false,
+      status: res.status,
+      error:
+        res.status === 401
+          ? "Tu sesión expiró. Vuelve a iniciar sesión."
+          : "No se pudieron cargar los hogares.",
+    };
+  } catch {
+    return NET_ERROR;
+  }
+}
+
+/** PATCH /api/hogares/{id} — actualiza campos parciales de un hogar. */
+export async function patchHogar(
+  id: string,
+  patch: HogarPatch,
+): Promise<Result<Hogar>> {
+  try {
+    const res = await fetch(`/api/hogares/${encodeURIComponent(id)}`, {
+      ...COMMON,
+      method: "PATCH",
+      headers: JSON_HEADERS,
+      body: JSON.stringify(patch),
+    });
+    if (res.ok) return { ok: true, data: (await res.json()) as Hogar };
+    const fallback =
+      res.status === 404
+        ? "El hogar ya no existe; quizás se eliminó."
+        : "No se pudieron guardar los cambios del hogar.";
+    const { error, fields } = await readError(res, fallback);
+    return { ok: false, status: res.status, error, fields };
+  } catch {
+    return NET_ERROR;
+  }
+}
+
+/** DELETE /api/hogares/{id} — elimina un hogar de paso. */
+export async function deleteHogar(id: string): Promise<Result<true>> {
+  try {
+    const res = await fetch(`/api/hogares/${encodeURIComponent(id)}`, {
+      ...COMMON,
+      method: "DELETE",
+    });
+    if (res.ok) return { ok: true, data: true };
+    const fallback =
+      res.status === 404
+        ? "El hogar ya no existe."
+        : "No se pudo eliminar el hogar.";
+    const { error } = await readError(res, fallback);
+    return { ok: false, status: res.status, error };
+  } catch {
+    return NET_ERROR;
+  }
+}
+
+/** GET /api/hogares/solicitudes — todas las solicitudes de hospedaje. */
+export async function getSolicitudesHogar(): Promise<Result<SolicitudHogar[]>> {
+  try {
+    const res = await fetch("/api/hogares/solicitudes", COMMON);
+    if (res.ok) {
+      return { ok: true, data: (await res.json()) as SolicitudHogar[] };
+    }
+    return {
+      ok: false,
+      status: res.status,
+      error:
+        res.status === 401
+          ? "Tu sesión expiró. Vuelve a iniciar sesión."
+          : "No se pudieron cargar las solicitudes.",
+    };
+  } catch {
+    return NET_ERROR;
+  }
+}
+
+/**
+ * PATCH /api/hogares/solicitudes/{id} — avanza el ciclo de una solicitud.
+ * El servidor hace el trabajo delicado: genera `codigoVerificacion` al
+ * emparejar, sella `hospedadaAt` al pasar a "hospedada" y libera el hogar
+ * al cerrar. El panel solo declara el cambio de estado.
+ */
+export async function patchSolicitudHogar(
+  id: string,
+  patch: SolicitudPatch,
+): Promise<Result<SolicitudHogar>> {
+  try {
+    const res = await fetch(
+      `/api/hogares/solicitudes/${encodeURIComponent(id)}`,
+      {
+        ...COMMON,
+        method: "PATCH",
+        headers: JSON_HEADERS,
+        body: JSON.stringify(patch),
+      },
+    );
+    if (res.ok) return { ok: true, data: (await res.json()) as SolicitudHogar };
+    const fallback =
+      res.status === 404
+        ? "La solicitud ya no existe; quizás se eliminó."
+        : "No se pudieron guardar los cambios de la solicitud.";
+    const { error, fields } = await readError(res, fallback);
+    return { ok: false, status: res.status, error, fields };
   } catch {
     return NET_ERROR;
   }
