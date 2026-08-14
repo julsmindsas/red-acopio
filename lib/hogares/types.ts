@@ -271,6 +271,15 @@ export interface SolicitudHogar {
    * notificación por correo a ese anfitrión para que acepte o rechace.
    */
   hogarInteresId: string | null;
+  /**
+   * Hogares a los que ya se les envió la invitación (subasta silenciosa).
+   *
+   * Cuando la persona no eligió una casa concreta, el servidor invita a TODOS
+   * los hogares compatibles y el primero que acepta se queda con el match. Se
+   * guarda la lista para no volver a escribirle al mismo anfitrión y para que
+   * el panel vea a quiénes ya se les preguntó.
+   */
+  invitados: string[];
   /** Quiénes componen el grupo (mujeres, niños, mascotas...). */
   composicion: HogarAcepta[];
   /**

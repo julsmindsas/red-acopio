@@ -15,13 +15,7 @@ import type { ApiError } from "@/lib/types";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth";
 import { solicitudInputSchema } from "@/lib/hogares/validation";
 import { getHogaresRepository } from "@/lib/hogares/store";
-import {
-  baseUrl,
-  correoNuevaSolicitud,
-  crearToken,
-  enlacesHabilitados,
-  enviarCorreo,
-} from "@/lib/hogares/email";
+import { invitarHogares } from "@/lib/hogares/subasta";
 import { formatZodErrors } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -77,31 +71,21 @@ export async function POST(req: Request) {
     const repo = getHogaresRepository();
     const solicitud = await repo.createSolicitud(result.data);
 
-    // Si la solicitud señaló un hogar concreto, se le avisa a ese anfitrión
-    // por correo con un enlace firmado para aceptar o rechazar. Mejor
-    // esfuerzo: un fallo de correo jamás tumba el registro de la solicitud.
-    if (solicitud.hogarInteresId && enlacesHabilitados()) {
+    // Aviso a los anfitriones. Dos casos, misma puerta:
+    //   - Eligió una casa concreta  → se le pregunta solo a esa.
+    //   - No eligió ninguna         → subasta silenciosa: se invita a todos
+    //     los compatibles y el primero que acepta se queda con el match.
+    // Mejor esfuerzo dentro de after(): un fallo de correo jamás tumba el
+    // registro de la solicitud, y el envío corre garantizado tras responder.
+    after(async () => {
       try {
-        const hogar = await repo.getHogarById(solicitud.hogarInteresId);
-        if (
-          hogar?.email &&
-          hogar.verificacion !== "rechazado" &&
-          hogar.disponibilidad === "disponible"
-        ) {
-          const token = crearToken(
-            { acc: "responder", hid: hogar.id, sid: solicitud.id },
-            14,
-          );
-          const url = `${baseUrl()}/hogares/respuesta?token=${encodeURIComponent(token)}`;
-          const correo = correoNuevaSolicitud(hogar, solicitud, url);
-          const destinatario = hogar.email;
-          // after(): garantiza el envío tras la respuesta (serverless).
-          after(() => enviarCorreo({ to: destinatario, ...correo }));
-        }
+        await invitarHogares(repo, solicitud, {
+          hogarId: solicitud.hogarInteresId,
+        });
       } catch (err) {
-        console.error("[POST /api/hogares/solicitudes] aviso al anfitrión", err);
+        console.error("[POST /api/hogares/solicitudes] invitación", err);
       }
-    }
+    });
 
     return Response.json(
       {

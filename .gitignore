@@ -51,3 +51,9 @@ data/hogares.local.json
 next-env.d.ts
 
 .env*
+
+# Skills de agentes instaladas por integraciones (Resend). Las reinstala
+# el propio 'vercel integration add'; no son codigo del proyecto.
+.agents/
+.claude/skills/
+skills-lock.json

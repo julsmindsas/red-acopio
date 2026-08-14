@@ -250,14 +250,27 @@ export function correoNuevaSolicitud(
   hogar: Hogar,
   solicitud: SolicitudHogar,
   responderUrl: string,
+  opts: { varios?: boolean } = {},
 ): { subject: string; html: string } {
+  // Cuando la invitación va a varios hogares a la vez hay que decirlo: es
+  // honesto y además explica por qué conviene responder pronto.
+  const entrada = opts.varios
+    ? `<p>Una familia necesita hogar en <strong>${esc(solicitud.ciudad)}</strong> y tu casa
+       encaja con lo que declaraste. Le escribimos a varios hogares compatibles:
+       <strong>el primero que acepte se queda con el hospedaje</strong>.</p>`
+    : `<p>Alguien solicitó tu hogar en <strong>${esc(hogar.ciudad)}</strong>. Este es el
+       resumen del grupo (por seguridad, sin nombres ni teléfonos):</p>`;
+
   return {
-    subject: "Alguien solicita tu hogar de paso",
+    subject: opts.varios
+      ? "Una familia necesita hogar y tu casa encaja"
+      : "Alguien solicita tu hogar de paso",
     html: plantilla(
-      "Una familia quiere hospedarse contigo",
+      opts.varios
+        ? "Hay una familia que podrías recibir"
+        : "Una familia quiere hospedarse contigo",
       `
-      <p>Alguien solicitó tu hogar en <strong>${esc(hogar.ciudad)}</strong>. Este es el
-      resumen del grupo (por seguridad, sin nombres ni teléfonos):</p>
+      ${entrada}
       ${resumenGrupo(solicitud)}
       <p>Tú decides. Si aceptas, ambas partes recibirán el contacto del otro y un
       código de confirmación para compararlo al llegar. Si no puedes, la solicitud

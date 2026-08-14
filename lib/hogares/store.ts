@@ -35,6 +35,8 @@ import {
  */
 export type SolicitudPatchServidor = SolicitudPatch & {
   hospedadaAt?: string;
+  /** Lista de hogares ya invitados. Solo la escribe el servidor. */
+  invitados?: string[];
 };
 
 /** Contrato acordado con el resto de la app. No cambiar sin coordinar. */
@@ -115,6 +117,8 @@ function buildSolicitud(input: ValidatedSolicitudInput): SolicitudHogar {
     composicion: input.composicion,
     preferencias: input.preferencias ?? [],
     hogarInteresId: input.hogarInteresId ?? null,
+    // La invitación se envía después de crear la solicitud (necesita su id).
+    invitados: [],
     notas: emptyToNull(input.notas),
     estado: "nueva",
     hogarId: null,
@@ -187,6 +191,7 @@ function normalizeSolicitud(
     composicion: Array.isArray(raw.composicion) ? raw.composicion : [],
     preferencias: Array.isArray(raw.preferencias) ? raw.preferencias : [],
     hogarInteresId: raw.hogarInteresId ?? null,
+    invitados: Array.isArray(raw.invitados) ? raw.invitados : [],
     notas: raw.notas ?? null,
     estado: raw.estado ?? "nueva",
     hogarId: raw.hogarId ?? null,
@@ -243,6 +248,9 @@ function applySolicitudPatch(
     ...(patch.seguimientos !== undefined && {
       seguimientos: patch.seguimientos,
     }),
+    // Invitados: solo el servidor lo escribe, y siempre acumulando — a un
+    // anfitrión no se le escribe dos veces por la misma solicitud.
+    ...(patch.invitados !== undefined && { invitados: patch.invitados }),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -422,6 +430,7 @@ interface SolicitudRow {
   composicion: unknown;
   preferencias: unknown;
   hogar_interes_id: string | null;
+  invitados: unknown;
   notas: string | null;
   estado: string;
   hogar_id: string | null;
@@ -482,6 +491,7 @@ function rowToSolicitud(row: SolicitudRow): SolicitudHogar {
     composicion: parseJsonArray(row.composicion),
     preferencias: parseJsonArray(row.preferencias),
     hogarInteresId: row.hogar_interes_id,
+    invitados: parseJsonArray(row.invitados),
     notas: row.notas,
     estado: row.estado as SolicitudHogar["estado"],
     hogarId: row.hogar_id,
@@ -549,6 +559,7 @@ class HogaresPostgresStore implements HogaresRepository {
         composicion         JSONB NOT NULL DEFAULT '[]',
         preferencias        JSONB NOT NULL DEFAULT '[]',
         hogar_interes_id    TEXT,
+        invitados           JSONB NOT NULL DEFAULT '[]',
         notas               TEXT,
         estado              TEXT NOT NULL DEFAULT 'nueva',
         hogar_id            TEXT,
@@ -584,6 +595,11 @@ class HogaresPostgresStore implements HogaresRepository {
     await sql`
       ALTER TABLE solicitudes_hogar
         ADD COLUMN IF NOT EXISTS hogar_interes_id TEXT
+    `;
+    // Subasta silenciosa: a qué hogares ya se les envió la invitación.
+    await sql`
+      ALTER TABLE solicitudes_hogar
+        ADD COLUMN IF NOT EXISTS invitados JSONB NOT NULL DEFAULT '[]'
     `;
   }
 
@@ -698,7 +714,7 @@ class HogaresPostgresStore implements HogaresRepository {
     const rows = (await sql`
       INSERT INTO solicitudes_hogar
         (id, nombre, telefono, email, ciudad, personas, composicion,
-         preferencias, hogar_interes_id, notas, estado, hogar_id,
+         preferencias, hogar_interes_id, invitados, notas, estado, hogar_id,
          codigo_verificacion, hospedada_at, seguimientos, created_at,
          updated_at)
       VALUES
@@ -707,6 +723,7 @@ class HogaresPostgresStore implements HogaresRepository {
          ${JSON.stringify(s.composicion)}::jsonb,
          ${JSON.stringify(s.preferencias)}::jsonb,
          ${s.hogarInteresId},
+         ${JSON.stringify(s.invitados)}::jsonb,
          ${s.notas}, ${s.estado}, ${s.hogarId}, ${s.codigoVerificacion},
          ${s.hospedadaAt}::timestamptz,
          ${JSON.stringify(s.seguimientos)}::jsonb,
@@ -749,6 +766,11 @@ class HogaresPostgresStore implements HogaresRepository {
     if (patch.seguimientos !== undefined) {
       setClauses.push(
         `seguimientos = $${values.push(JSON.stringify(patch.seguimientos))}::jsonb`,
+      );
+    }
+    if (patch.invitados !== undefined) {
+      setClauses.push(
+        `invitados = $${values.push(JSON.stringify(patch.invitados))}::jsonb`,
       );
     }
 

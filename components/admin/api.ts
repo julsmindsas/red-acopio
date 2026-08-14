@@ -342,3 +342,43 @@ export async function patchSolicitudHogar(
     return NET_ERROR;
   }
 }
+
+/** Resultado de una ronda de invitaciones (subasta silenciosa). */
+export interface ResultadoInvitacion {
+  /** Hogares a los que se les envió la invitación en esta ronda. */
+  invitados: string[];
+  /** Compatibles que quedaron para la siguiente ronda. */
+  pendientes: number;
+}
+
+/**
+ * POST /api/hogares/solicitudes/{id}/invitar — pide aprobación a los hogares
+ * compatibles en vez de emparejar a dedo. Sin `hogarId` invita a la siguiente
+ * tanda; con él, le pregunta a una casa concreta.
+ */
+export async function invitarHogares(
+  id: string,
+  hogarId?: string,
+): Promise<Result<ResultadoInvitacion>> {
+  try {
+    const res = await fetch(
+      `/api/hogares/solicitudes/${encodeURIComponent(id)}/invitar`,
+      {
+        ...COMMON,
+        method: "POST",
+        headers: JSON_HEADERS,
+        body: JSON.stringify(hogarId ? { hogarId } : {}),
+      },
+    );
+    if (res.ok) {
+      return { ok: true, data: (await res.json()) as ResultadoInvitacion };
+    }
+    const { error } = await readError(
+      res,
+      "No se pudieron enviar las invitaciones.",
+    );
+    return { ok: false, status: res.status, error };
+  } catch {
+    return NET_ERROR;
+  }
+}

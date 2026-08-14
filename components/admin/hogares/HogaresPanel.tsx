@@ -15,6 +15,7 @@ import {
   deleteHogar,
   getHogares,
   getSolicitudesHogar,
+  invitarHogares,
   patchHogar,
   patchSolicitudHogar,
   type Result,
@@ -247,6 +248,37 @@ export default function HogaresPanel({
       return res;
     },
     [emparejando, runSolicitudPatch],
+  );
+
+  /**
+   * Subasta silenciosa desde el panel: en vez de imponer el match, se les pide
+   * aprobación por correo a los hogares compatibles. El primero que acepte se
+   * queda con el hospedaje, y el anfitrión nunca recibe a nadie sin decir sí.
+   */
+  const invitar = useCallback(
+    async (solicitud: SolicitudHogar) => {
+      setBusyId(solicitud.id);
+      const res = await invitarHogares(solicitud.id);
+      setBusyId(null);
+      if (!res.ok) {
+        if (res.status === 401) {
+          onSessionLost();
+          return;
+        }
+        setFlash({ tone: "error", text: res.error });
+        return;
+      }
+      const n = res.data.invitados.length;
+      setFlash({
+        tone: n > 0 ? "success" : "error",
+        text:
+          n > 0
+            ? `Invitación enviada a ${n} ${n === 1 ? "hogar compatible" : "hogares compatibles"}. El primero que acepte se queda con el hospedaje.${res.data.pendientes > 0 ? ` Quedan ${res.data.pendientes} para una próxima ronda.` : ""}`
+            : "No hay hogares compatibles nuevos a quienes invitar (o ya se les preguntó a todos).",
+      });
+      await reload();
+    },
+    [onSessionLost, reload],
   );
 
   const yaLlego = useCallback(
@@ -569,6 +601,7 @@ export default function HogaresPanel({
                       hogares={listaHogares}
                       busy={busyId === solicitud.id}
                       onBuscarHogar={setEmparejando}
+                      onInvitar={invitar}
                       onYaLlego={yaLlego}
                       onRegistrarLlamada={(s, hito) =>
                         setLlamando({ solicitud: s, hito })

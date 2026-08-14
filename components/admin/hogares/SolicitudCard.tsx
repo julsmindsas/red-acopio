@@ -20,7 +20,9 @@ import {
  * Muestra los datos privados (este panel es del equipo) y las acciones que
  * corresponden al estado dentro del ciclo operativo:
  *
- *   nueva / en_proceso -> "Buscar hogar" (abre el modal de emparejamiento)
+ *   nueva / en_proceso -> "Invitar hogares compatibles" (les pide aprobación
+ *                         por correo; el primero que acepte se lleva el match)
+ *                         y "Emparejar directo" como acción secundaria
  *   emparejada         -> código de verificación + hogar asignado + "Ya llegó"
  *   hospedada          -> historial de llamadas + "Registrar llamada"
  *   (no cerrada)       -> "Cerrar" con confirmación (libera el hogar)
@@ -33,6 +35,7 @@ export default function SolicitudCard({
   hogares,
   busy,
   onBuscarHogar,
+  onInvitar,
   onYaLlego,
   onRegistrarLlamada,
   onCerrar,
@@ -42,6 +45,8 @@ export default function SolicitudCard({
   hogares: Hogar[];
   busy: boolean;
   onBuscarHogar: (solicitud: SolicitudHogar) => void;
+  /** Lanza una ronda de la subasta: pide aprobación a los compatibles. */
+  onInvitar: (solicitud: SolicitudHogar) => void;
   onYaLlego: (id: string) => void;
   onRegistrarLlamada: (
     solicitud: SolicitudHogar,
@@ -110,6 +115,15 @@ export default function SolicitudCard({
           </Dato>
         )}
         <Dato term="Recibida">{fmtFecha(solicitud.createdAt)}</Dato>
+        {/* Transparencia de la subasta: a cuántos anfitriones ya se les
+            preguntó, para no relanzar rondas a ciegas. */}
+        <Dato term="Invitaciones enviadas">
+          {solicitud.invitados.length > 0 ? (
+            `${solicitud.invitados.length} ${solicitud.invitados.length === 1 ? "hogar" : "hogares"}`
+          ) : (
+            <span className="text-foreground/40">Ninguna todavía</span>
+          )}
+        </Dato>
         {solicitud.hospedadaAt && (
           <Dato term="Llegó al hogar">{fmtFecha(solicitud.hospedadaAt)}</Dato>
         )}
@@ -174,19 +188,34 @@ export default function SolicitudCard({
       {/* Acciones según el estado */}
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
         {(solicitud.estado === "nueva" || solicitud.estado === "en_proceso") && (
-          <button
-            type="button"
-            onClick={() => onBuscarHogar(solicitud)}
-            disabled={busy}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm shadow-brand-600/25 transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {busy ? (
-              <Spinner className="size-4 text-white" />
-            ) : (
+          <>
+            {/* Acción principal: PEDIR aprobación, no imponer el match. El
+                anfitrión recibe el correo y decide él. */}
+            <button
+              type="button"
+              onClick={() => onInvitar(solicitud)}
+              disabled={busy}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm shadow-brand-600/25 transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy ? (
+                <Spinner className="size-4 text-white" />
+              ) : (
+                <span aria-hidden="true">📨</span>
+              )}
+              Invitar hogares compatibles
+            </button>
+            {/* Emparejar a dedo queda como acción secundaria: sirve cuando el
+                acuerdo ya se cerró por teléfono y solo falta registrarlo. */}
+            <button
+              type="button"
+              onClick={() => onBuscarHogar(solicitud)}
+              disabled={busy}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60"
+            >
               <span aria-hidden="true">🔍</span>
-            )}
-            Buscar hogar
-          </button>
+              Emparejar directo
+            </button>
+          </>
         )}
 
         {solicitud.estado === "emparejada" && (
