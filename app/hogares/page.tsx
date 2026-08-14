@@ -10,9 +10,10 @@ import { toHogarPublico } from "@/lib/hogares/types";
  * Página /hogares (Server Component): "Abre tu casa" — hogares de paso.
  *
  * Personas que ofrecen su casa para hospedar temporalmente a familias
- * damnificadas (y a sus mascotas). Todo el diseño gira alrededor de una regla:
- * el contacto es SIEMPRE mediado por el equipo coordinador. Aquí no hay
- * teléfonos, nombres ni direcciones; solo la proyección `toHogarPublico`.
+ * damnificadas (y a sus mascotas). Red de Acopio es una plataforma de
+ * INTERMEDIACIÓN: no verifica personas ni hace llamadas — protege los datos.
+ * Aquí no hay teléfonos, nombres ni direcciones; solo `toHogarPublico`, y el
+ * copy nunca promete acciones humanas que nadie va a ejecutar.
  *
  * La lista debe reflejar el estado real en cada visita (un hogar se pausa o se
  * ocupa en minutos durante una emergencia), así que se fuerza el renderizado
@@ -24,53 +25,59 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Hogares de paso — Abre tu casa | Red de Acopio",
   description:
-    "Familias que abren su casa a personas damnificadas por el sismo del 10 de agosto de 2026 en Colombia — y a sus mascotas. Contacto siempre mediado y verificado por el equipo coordinador.",
+    "Familias que abren su casa a personas damnificadas por el sismo del 10 de agosto de 2026 en Colombia — y a sus mascotas. Nunca publicamos teléfonos, nombres ni direcciones.",
   openGraph: {
     title: "Hogares de paso — Abre tu casa | Red de Acopio",
     description:
-      "Ofrece tu casa o encuentra un hogar temporal verificado tras el sismo de Colombia 2026. Nunca publicamos datos personales; el equipo verifica a ambas partes.",
+      "Ofrece tu casa o encuentra un hogar temporal tras el sismo de Colombia 2026. Plataforma de intermediación: nunca publicamos datos personales.",
     type: "website",
     locale: "es_CO",
   },
 };
 
-/** Los cuatro compromisos de seguridad, visibles antes de la lista. */
+/**
+ * Los compromisos y advertencias de seguridad, visibles antes de la lista.
+ * Honestidad primero: la plataforma protege los DATOS, pero no verifica a las
+ * PERSONAS — decirlo claro es la mejor protección que podemos dar.
+ */
 const SEGURIDAD = [
   {
     emoji: "🔒",
-    titulo: "Contacto siempre mediado",
+    titulo: "Tus datos no se publican",
     detalle:
-      "Nunca publicamos teléfonos, nombres ni direcciones. El equipo coordinador es quien conecta a las dos partes, y solo después de verificarlas.",
+      "Nunca mostramos teléfonos, nombres, documentos ni direcciones. El contacto se comparte solo entre las dos partes cuando se concreta un hospedaje.",
   },
   {
     emoji: "👥",
     titulo: "Cada hogar declara quiénes viven allí",
     detalle:
-      "Lo confirmamos en la llamada de verificación y se muestra en cada tarjeta. Así una mujer sola puede elegir un hogar donde viven mujeres.",
+      "Se muestra en cada tarjeta tal como lo declaró el anfitrión. Así una mujer sola puede elegir un hogar donde viven mujeres.",
   },
   {
     emoji: "🔑",
-    titulo: "Código de seguridad mutuo",
+    titulo: "Código de confirmación mutuo",
     detalle:
-      "Al emparejar, ambas partes reciben el mismo código corto y lo comparan al llegar. Si no coincide, nadie entra.",
+      "Cuando se concreta un hospedaje, ambas partes tienen el mismo código corto y lo comparan al llegar. Si no coincide, nadie entra.",
   },
   {
-    emoji: "📞",
-    titulo: "Seguimiento del equipo",
+    emoji: "⚠️",
+    titulo: "Verifica por tu cuenta",
     detalle:
-      "Llamamos a las dos partes a las 48 horas y a los 7 días. Si algo no está bien, actuamos de inmediato.",
+      "Somos una plataforma de intermediación: no verificamos a las personas. Antes de recibir o llegar a una casa, hablen por teléfono, pidan documentos y, si pueden, encuéntrense primero en un lugar público.",
   },
 ];
 
 export default async function HogaresPage() {
   // El repositorio decide el almacenamiento; la página solo pide la lista y
-  // aplica el filtro de publicación: verificado y disponible. Los "ocupado"
-  // no se muestran: señalar qué casa está hospedando gente AHORA es
-  // información que protege más callada que contada.
+  // aplica el filtro de publicación: todo hogar no rechazado y disponible se
+  // publica de inmediato (plataforma de intermediación: nadie llama a
+  // verificar; la tarjeta etiqueta el estado real del dato). Los "ocupado" no
+  // se muestran: señalar qué casa está hospedando gente AHORA es información
+  // que protege más callada que contada.
   const repo = getHogaresRepository();
   const hogares = (await repo.listHogares())
     .filter(
-      (h) => h.verificacion === "verificado" && h.disponibilidad === "disponible",
+      (h) => h.verificacion !== "rechazado" && h.disponibilidad === "disponible",
     )
     .map(toHogarPublico);
 
@@ -98,8 +105,9 @@ export default async function HogaresPage() {
             <strong className="font-semibold text-foreground">
               personas y también sus mascotas
             </strong>{" "}
-            — siempre con la verificación y el acompañamiento del equipo
-            coordinador.
+            — sin publicar jamás los datos personales de nadie. Somos el
+            puente, no un verificador: revisa los consejos de seguridad antes
+            de coordinar.
           </p>
 
           {/* Dos CTAs grandes, del mismo peso: ninguna de las dos puertas es
@@ -161,18 +169,18 @@ export default async function HogaresPage() {
           </ul>
         </section>
 
-        {/* ---- Lista de hogares verificados ---- */}
+        {/* ---- Lista de hogares disponibles ---- */}
         <section aria-labelledby="lista-titulo" className="mt-10">
           <h2
             id="lista-titulo"
             className="text-xl font-bold tracking-tight text-foreground sm:text-2xl"
           >
-            Hogares verificados
+            Hogares disponibles
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-foreground/70">
-            Cada hogar de esta lista pasó la llamada de verificación del
-            equipo. Sin nombres ni direcciones: eso se comparte solo al
-            emparejar, con el código de seguridad.
+            Cada tarjeta muestra lo que el anfitrión declaró — sin nombres ni
+            direcciones; eso se comparte solo entre las dos partes al concretar
+            el hospedaje. La etiqueta te dice si el dato está verificado o no.
           </p>
 
           {hogares.length > 0 ? (
@@ -192,9 +200,9 @@ export default async function HogaresPage() {
                 Sé la primera casa abierta de tu ciudad
               </h3>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-foreground/70">
-                Todavía no hay hogares verificados en la lista. Los primeros en
-                registrarse están ahora mismo en verificación — y el tuyo puede
-                ser el que le devuelva el techo a una familia esta semana.
+                Todavía no hay hogares publicados en la lista. El tuyo puede
+                ser el primero — y el que le devuelva el techo a una familia
+                esta misma semana.
               </p>
               <Link
                 href="/hogares/ofrecer"
@@ -213,9 +221,9 @@ export default async function HogaresPage() {
             ¿Necesitas hospedaje aunque no veas un hogar que te sirva?
           </h2>
           <p className="mt-1.5 text-sm leading-relaxed text-foreground/70">
-            Registra tu solicitud igual: el equipo busca entre todos los
-            hogares —incluidos los que aún están en verificación— y te llama
-            cuando haya uno compatible con tus preferencias.
+            Registra tu solicitud igual: queda guardada de forma privada y se
+            usa para conectarte con un hogar compatible con tus preferencias
+            en cuanto exista uno.
           </p>
           <Link
             href="/hogares/solicitar"

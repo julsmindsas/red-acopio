@@ -14,7 +14,7 @@ import {
  * PRINCIPIO INNEGOCIABLE: aquí solo entra `HogarPublico`, la proyección que
  * sale de `toHogarPublico()`. Nunca el nombre del anfitrión, ni su teléfono,
  * ni la dirección: la tarjeta describe la casa, no a la persona. El contacto
- * lo media el equipo coordinador después de la solicitud.
+ * se comparte solo entre las dos partes cuando se concreta un hospedaje.
  *
  * Jerarquía de lectura pensada para alguien que lo perdió todo y navega desde
  * un celular prestado: 1) dónde está y para cuántos, 2) si acepta a "los míos"
@@ -57,13 +57,21 @@ export default function HogarCard({ hogar }: { hogar: HogarPublico }) {
           </div>
         </div>
 
-        {/* Confianza y estado: verificado va siempre (la lista solo publica
-            verificados) y la disponibilidad avisa si la casa ya está llena. */}
+        {/* Confianza y estado: la etiqueta dice la verdad sobre el dato.
+            Red de Acopio no verifica personas; si un hogar aparece como
+            "sin verificar", quien solicita lo sabe desde la tarjeta — el mismo
+            lenguaje honesto que usan los puntos del mapa. */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">
-            <span aria-hidden="true">✓</span>
-            Verificado por el equipo
-          </span>
+          {hogar.verificacion === "verificado" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">
+              <span aria-hidden="true">✓</span>
+              Datos verificados
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 text-xs font-semibold text-accent-800 ring-1 ring-inset ring-accent-200">
+              Sin verificar
+            </span>
+          )}
           {ocupado ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200">
               Ya está hospedando
@@ -107,7 +115,8 @@ export default function HogarCard({ hogar }: { hogar: HogarPublico }) {
           </p>
         )}
 
-        {/* Notas del anfitrión, ya revisadas por el equipo antes de publicar. */}
+        {/* Notas del anfitrión, tal como las escribió (la proyección pública
+            ya les retira teléfonos y direcciones automáticamente). */}
         {hogar.notas?.trim() && (
           <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-foreground/60">
             {hogar.notas}
@@ -116,7 +125,7 @@ export default function HogarCard({ hogar }: { hogar: HogarPublico }) {
       </div>
 
       {/* 4. UNA SOLA ACCIÓN — abre la solicitud con este hogar preseleccionado.
-          Nunca hay teléfono ni dirección aquí: el equipo hace el puente. */}
+          Nunca hay teléfono ni dirección aquí: la plataforma hace el puente. */}
       <div className="px-4 pb-4">
         <Link
           href={`/hogares/solicitar?hogar=${hogar.id}`}

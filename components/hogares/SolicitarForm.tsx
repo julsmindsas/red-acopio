@@ -27,7 +27,7 @@ import type { ApiError } from "@/lib/types";
  *
  * Si la persona llegó desde la tarjeta de un hogar (?hogar=ID en la URL), la
  * página nos pasa ese ID y lo dejamos anotado en las notas iniciales: así el
- * equipo sabe qué hogar le interesó sin complicar el esquema con otro campo.
+ * la solicitud registra qué hogar le interesó sin otro campo en el esquema.
  */
 
 const EMPTY_ERRORS: Record<string, string[]> = {};
@@ -164,13 +164,14 @@ export default function SolicitarForm({
         </h2>
         <div className="mx-auto mt-3 max-w-md space-y-2 text-left text-sm text-brand-800">
           <p>
-            El equipo te llamará al teléfono que dejaste y te propondrá un{" "}
-            <strong>hogar verificado</strong> que respete tus preferencias.
+            Tu solicitud quedó registrada de forma <strong>privada</strong>:
+            no aparece publicada en ninguna parte y solo se usa para
+            conectarte con un hogar que respete tus preferencias.
           </p>
           <p>
-            <strong>Tu código de seguridad:</strong> cuando haya un hogar para
-            ti, tú y la familia anfitriona recibirán el mismo código. Compárenlo
-            al llegar: <strong>si no coincide, no entres y llámanos.</strong>
+            <strong>Tu código de seguridad:</strong> al concretarse un hogar
+            para ti, tú y la familia anfitriona tendrán el mismo código.
+            Compárenlo al llegar: <strong>si no coincide, no entres.</strong>
           </p>
         </div>
         <div className="mt-5 flex flex-col items-center justify-center gap-2 sm:flex-row">
@@ -224,7 +225,7 @@ export default function SolicitarForm({
         htmlFor="telefono"
         required
         error={errFor("telefono")}
-        hint="Por aquí te llama el equipo. Nunca se publica."
+        hint="Solo se usa para coordinar tu hospedaje. Nunca se publica."
       >
         <input
           id="telefono"
@@ -333,7 +334,7 @@ export default function SolicitarForm({
           ¿Con qué tipo de hogar te sentirías más segura/o?
         </legend>
         <p className="mt-0.5 text-xs text-foreground/60">
-          Opcional, pero el equipo lo respeta siempre: nunca te propondrá un
+          Opcional, pero se respeta siempre: nunca se te conectará con un
           hogar que no cumpla lo que marques aquí.
         </p>
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -372,7 +373,7 @@ export default function SolicitarForm({
         label="Notas (opcional)"
         htmlFor="notas"
         error={errFor("notas")}
-        hint="Lo que el equipo deba saber: salud, movilidad, hasta cuándo necesitas el hogar…"
+        hint="Lo que el hogar deba saber: salud, movilidad, hasta cuándo necesitas quedarte…"
       >
         <textarea
           id="notas"
@@ -396,7 +397,8 @@ export default function SolicitarForm({
           <strong className="font-semibold">
             Tu solicitud es privada: nadie la ve en la página.
           </strong>{" "}
-          El equipo te llamará y te propondrá un hogar verificado.
+          Solo se usa para conectarte con un hogar que respete tus
+          preferencias.
         </p>
       </div>
 

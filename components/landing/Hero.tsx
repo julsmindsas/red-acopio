@@ -50,26 +50,27 @@ export default function Hero() {
           {/* Hogares de paso: la intención principal de la portada. Va antes
               y más grande que el resto porque una familia que te recibe
               resuelve más que una noche de albergue — y casi nadie sabe
-              todavía que existe. */}
+              todavía que existe. Colores explícitos (ámbar fuerte + blanco):
+              el panel se ve igual de legible en tema claro y oscuro, sin
+              depender de tokens que cambian con el esquema. */}
           <Link
             href="/hogares"
-            className="group mt-7 flex items-center gap-3.5 rounded-2xl border-2 border-accent-400 bg-gradient-to-r from-accent-50 to-accent-100 px-4 py-4 shadow-sm transition-colors hover:border-accent-500 hover:to-accent-200"
+            className="group mt-7 flex items-center gap-3.5 rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 px-4 py-4 text-white shadow-lg shadow-accent-600/25 ring-1 ring-accent-400/50 transition-colors hover:from-accent-600 hover:to-accent-700"
           >
             <span aria-hidden="true" className="text-4xl leading-none">
               🏡
             </span>
             <span className="flex-1 leading-tight">
-              <span className="block text-base font-bold text-foreground sm:text-lg">
+              <span className="block text-base font-bold sm:text-lg">
                 Hogares de paso: familias que abren su casa
               </span>
-              <span className="mt-0.5 block text-sm text-foreground/70">
-                Para ti y tus mascotas, con verificación del equipo — o ofrece
-                la tuya
+              <span className="mt-0.5 block text-sm text-white/85">
+                Para ti y tus mascotas — o publica la tuya y recibe a alguien
               </span>
             </span>
             <span
               aria-hidden="true"
-              className="text-xl font-bold text-accent-700 transition-transform group-hover:translate-x-0.5"
+              className="text-xl font-bold transition-transform group-hover:translate-x-0.5"
             >
               →
             </span>
@@ -141,7 +142,10 @@ function HeroMap() {
       {/* Panel del mapa */}
       <div className="absolute inset-0 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-xl shadow-brand-900/5">
         <div className="absolute inset-0 bg-map-grid opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-50/70 via-transparent to-accent-50/60" />
+        {/* Tinte con colores saturados a baja opacidad: los pasteles (brand-50)
+            solo funcionan sobre fondo claro; sobre la superficie oscura del
+            tema oscuro se veían como una mancha gris rota. */}
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-accent-500/15" />
 
         {/* Ruta discontinua Colombia → Venezuela */}
         <svg

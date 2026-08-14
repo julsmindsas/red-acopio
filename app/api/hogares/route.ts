@@ -1,13 +1,14 @@
 /**
  * Route Handler: /api/hogares
  *
- * GET  → lista pública de hogares de paso: SOLO verificados y no pausados,
+ * GET  → lista pública de hogares de paso: no rechazados y disponibles,
  *        SIEMPRE proyectados con toHogarPublico() (sin nombre, teléfono,
  *        documento ni dirección).
- * GET ?todos=1 → lista completa con datos privados, exclusiva del equipo
- *        coordinador (cookie de sesión admin, igual que /api/admin/centers).
- * POST → registro público de un hogar. Entra como "pendiente": no se publica
- *        hasta que el equipo llame a verificar.
+ * GET ?todos=1 → lista completa con datos privados, exclusiva del panel de
+ *        coordinación (cookie de sesión admin, igual que /api/admin/centers).
+ * POST → registro público de un hogar. Entra como "pendiente" y se publica de
+ *        inmediato con esa etiqueta (plataforma de intermediación: no hay
+ *        proceso de verificación previo).
  *
  * Ref: Next.js 16 Route Handlers — app router, archivo route.ts.
  * Sin CORS abierto: igual que /api/centers, este endpoint es interno de la app.
@@ -49,15 +50,17 @@ export async function GET(req: NextRequest) {
       return Response.json(hogares);
     }
 
-    // Vista pública: el doble filtro (verificado + disponible) y la proyección
-    // toHogarPublico son el contrato de seguridad de todo el dominio. Los
-    // hogares "ocupado" NO se publican: zona + convivencia + "está hospedando
-    // ahora" le diría a un observador dónde vive gente vulnerable hoy.
+    // Vista pública: el filtro (no rechazado + disponible) y la proyección
+    // toHogarPublico son el contrato de seguridad de todo el dominio. La
+    // plataforma es de intermediación: los hogares se publican de inmediato
+    // con su estado de verificación real (la tarjeta lo etiqueta). Los
+    // "ocupado" NO se publican: zona + convivencia + "está hospedando ahora"
+    // le diría a un observador dónde vive gente vulnerable hoy.
     const hogares = await getHogaresRepository().listHogares();
     const publicos = hogares
       .filter(
         (h) =>
-          h.verificacion === "verificado" && h.disponibilidad === "disponible",
+          h.verificacion !== "rechazado" && h.disponibilidad === "disponible",
       )
       .map(toHogarPublico);
     return Response.json(publicos);
@@ -104,7 +107,7 @@ export async function POST(req: Request) {
       {
         hogar: toHogarPublico(hogar),
         mensaje:
-          "¡Gracias por abrir tu casa! El equipo coordinador te llamará al número que dejaste para verificar los datos. Tu hogar se publica solo después de esa llamada, y tu dirección y teléfono nunca se muestran públicamente.",
+          "¡Gracias por abrir tu casa! Tu hogar ya quedó publicado con la información general. Tu nombre, teléfono, documento y dirección nunca se muestran públicamente.",
       },
       { status: 201 },
     );

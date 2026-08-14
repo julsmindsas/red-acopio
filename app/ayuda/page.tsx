@@ -56,8 +56,8 @@ export default function AyudaPage() {
           </h2>
           <p className="mt-1.5 text-sm leading-relaxed text-foreground/70">
             Hay familias que abren su casa para hospedar temporalmente a
-            damnificados, con mascotas incluidas. Todo el contacto pasa por el
-            equipo coordinador: nadie ve tus datos ni tu dirección.
+            damnificados, con mascotas incluidas. La plataforma protege tus
+            datos: nadie ve tu teléfono ni tu dirección.
           </p>
           <Link
             href="/hogares"

@@ -6,9 +6,11 @@
  * aparte de los puntos del mapa: un hogar es la casa de alguien, no un sitio
  * público al que se puede llegar sin coordinación.
  *
- * Principio de seguridad que gobierna todo el modelo: el contacto es SIEMPRE
- * mediado. Teléfono, documento y dirección exacta jamás se exponen por la API
- * pública; el equipo coordinador verifica a ambas partes antes de conectarlas.
+ * Principio de seguridad que gobierna todo el modelo: los datos personales
+ * jamás se exponen por la API pública. Teléfono, documento y dirección exacta
+ * se comparten solo entre las dos partes al concretarse un hospedaje. La
+ * plataforma es de INTERMEDIACIÓN: la verificación humana es opcional (el
+ * campo `verificacion` etiqueta el estado real del dato, nunca se promete).
  */
 
 /** A quiénes puede recibir un hogar (y de quiénes se compone una solicitud). */
@@ -67,13 +69,14 @@ export const CONVIVENCIAS = [
 export type Convivencia = (typeof CONVIVENCIAS)[number];
 
 /**
- * Confianza en el hogar. Un hogar NO aparece en la lista pública hasta que el
- * equipo lo verifica (llamada + documento). Distinto de la disponibilidad.
+ * Confianza en el dato del hogar. Los hogares se publican de inmediato con su
+ * estado real (la tarjeta lo etiqueta); solo "rechazado" los saca de la lista.
+ * Distinto de la disponibilidad.
  */
 export const HOGAR_VERIFICACIONES = [
-  "pendiente", // recién registrado, sin revisar
-  "verificado", // llamada hecha, documento validado
-  "rechazado", // no pasó la verificación; nunca se publica
+  "pendiente", // registrado, sin verificar (se publica etiquetado así)
+  "verificado", // datos confirmados desde el panel de coordinación
+  "rechazado", // retirado de la plataforma; nunca se publica
 ] as const;
 
 export type HogarVerificacion = (typeof HOGAR_VERIFICACIONES)[number];

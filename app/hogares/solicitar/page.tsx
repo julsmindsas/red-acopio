@@ -51,8 +51,8 @@ export default async function SolicitarHogarPage({
           </h1>
           <p className="mt-1 text-sm text-foreground/70">
             Si tú o tu familia se quedaron sin dónde dormir, cuéntanos quiénes
-            son y dónde están. El equipo coordinador te buscará un hogar
-            verificado; las mascotas también cuentan.
+            son y dónde están para conectarte con un hogar que respete tus
+            preferencias; las mascotas también cuentan.
           </p>
         </div>
 
@@ -63,11 +63,12 @@ export default async function SolicitarHogarPage({
           </span>
           <p className="leading-relaxed">
             <strong className="font-semibold">
-              Nunca llegarás a una dirección sin coordinación.
+              Tu solicitud es privada y tus datos no se publican.
             </strong>{" "}
-            El equipo te llama, te propone un hogar verificado y, al aceptarlo,
-            tú y la familia anfitriona reciben el mismo código para compararlo
-            al llegar.
+            Al concretarse un hospedaje, tú y la familia anfitriona tendrán el
+            mismo código para compararlo al llegar. Ten en cuenta: la
+            plataforma no verifica a las personas — confirma los datos por tu
+            cuenta antes de llegar a una casa.
           </p>
         </div>
 

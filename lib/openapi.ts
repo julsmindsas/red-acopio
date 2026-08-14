@@ -338,10 +338,10 @@ const hogarVerificacionEnum: Schema = {
   type: "string",
   enum: ["pendiente", "verificado", "rechazado"],
   description:
-    "Confianza en el hogar. Un hogar NO aparece en la lista pública hasta que " +
-    "el equipo coordinador lo verifica (llamada + documento). " +
-    "pendiente=recién registrado, verificado=llamada hecha y documento validado, " +
-    "rechazado=no pasó la verificación (nunca se publica).",
+    "Confianza en el dato del hogar. La plataforma es de intermediación: los " +
+    "hogares se publican de inmediato con su estado real y la tarjeta lo " +
+    "etiqueta. pendiente=registrado sin verificar, verificado=datos " +
+    "confirmados, rechazado=retirado de la plataforma (nunca se publica).",
 };
 
 const hogarPublicoSchema: Schema = {
@@ -349,9 +349,9 @@ const hogarPublicoSchema: Schema = {
   description:
     "Proyección PÚBLICA de un hogar de paso: lo único que ve quien navega la " +
     "lista. NUNCA incluye nombre, teléfono, documento ni dirección del " +
-    "anfitrión — el contacto se hace siempre a través del equipo coordinador. " +
-    "Los campos de texto libre (zona, notas) pasan además por un filtro " +
-    "automático que retira teléfonos y direcciones.",
+    "anfitrión — ese contacto se comparte solo entre las dos partes al " +
+    "concretarse un hospedaje. Los campos de texto libre (zona, notas) pasan " +
+    "además por un filtro automático que retira teléfonos y direcciones.",
   required: [
     "id", "ciudad", "zona", "capacidad", "acepta", "ofrece", "duracion",
     "convivencia", "notas", "disponibilidad", "verificacion", "updatedAt",
@@ -397,8 +397,8 @@ const hogarPublicoSchema: Schema = {
     notas: {
       type: ["string", "null"],
       description:
-        "Aclaraciones del anfitrión, revisadas por el equipo y filtradas " +
-        "automáticamente para retirar datos de contacto.",
+        "Aclaraciones del anfitrión, filtradas automáticamente para retirar " +
+        "datos de contacto.",
       example: "Tenemos un patio grande, las mascotas son bienvenidas.",
     },
     disponibilidad: { $ref: "#/components/schemas/HogarDisponibilidad" },
@@ -416,8 +416,8 @@ const hogarInputSchema: Schema = {
   type: "object",
   description:
     "Datos que envía quien ofrece su casa como hogar de paso. Los datos " +
-    "personales (nombre, teléfono, documento, dirección) se usan SOLO para la " +
-    "verificación del equipo coordinador y jamás se publican.",
+    "personales (nombre, teléfono, documento, dirección) se usan SOLO para " +
+    "coordinar el hospedaje y jamás se publican.",
   required: [
     "nombre", "telefono", "ciudad", "capacidad", "acepta", "duracion", "convivencia",
   ],
@@ -427,14 +427,14 @@ const hogarInputSchema: Schema = {
       minLength: 3,
       maxLength: 120,
       description:
-        "Nombre completo del anfitrión. Privado: solo lo ve el equipo coordinador.",
+        "Nombre completo del anfitrión. Privado: nunca se publica.",
       example: "María Fernanda López",
     },
     telefono: {
       type: "string",
       pattern: "^[+]?[\\d\\s()-]{7,20}$",
       description:
-        "Teléfono del anfitrión; por aquí se hace la llamada de verificación. " +
+        "Teléfono del anfitrión; se usa solo para coordinar el hospedaje. " +
         "Privado: nunca se publica.",
       example: "310 555 1234",
     },
@@ -443,7 +443,7 @@ const hogarInputSchema: Schema = {
       minLength: 5,
       maxLength: 20,
       description:
-        "Cédula u otro documento, para la verificación (opcional al registrarse). Privado.",
+        "Cédula u otro documento (opcional). Privado: nunca se publica ni se comparte.",
       example: "1053812345",
     },
     direccion: {
@@ -451,7 +451,7 @@ const hogarInputSchema: Schema = {
       maxLength: 200,
       description:
         "Dirección exacta (opcional). Privada: solo se comparte con la persona " +
-        "ya emparejada, a través del equipo.",
+        "cuyo hospedaje se concretó.",
       example: "Se comparte solo con quien llega, nunca en la API pública.",
     },
     ciudad: {
@@ -507,8 +507,8 @@ const solicitudInputSchema: Schema = {
   type: "object",
   description:
     "Datos que envía quien necesita hospedaje. La solicitud es enteramente " +
-    "PRIVADA: solo la ve el equipo coordinador, que llama para buscar un hogar " +
-    "compatible.",
+    "PRIVADA: nunca se publica y se usa solo para conectar a la persona con " +
+    "un hogar compatible.",
   required: ["nombre", "telefono", "ciudad", "personas", "composicion"],
   properties: {
     nombre: {
@@ -521,7 +521,8 @@ const solicitudInputSchema: Schema = {
     telefono: {
       type: "string",
       pattern: "^[+]?[\\d\\s()-]{7,20}$",
-      description: "Teléfono de contacto; por aquí llama el equipo. Privado.",
+      description:
+        "Teléfono de contacto; se usa solo para coordinar el hospedaje. Privado.",
       example: "+57 301 222 3344",
     },
     ciudad: {
@@ -549,14 +550,15 @@ const solicitudInputSchema: Schema = {
       type: "array",
       items: { $ref: "#/components/schemas/Convivencia" },
       description:
-        "Con qué tipo de hogar se sentiría segura la persona (opcional). El " +
-        "equipo NO propone emparejamientos que violen estas preferencias.",
+        "Con qué tipo de hogar se sentiría segura la persona (opcional). " +
+        "Ningún emparejamiento puede violar estas preferencias: el servidor " +
+        "las hace cumplir.",
       example: ["mujer_sola", "mujeres_adultas"],
     },
     notas: {
       type: ["string", "null"],
       maxLength: 500,
-      description: "Contexto adicional para el equipo (opcional).",
+      description: "Contexto adicional para coordinar el hospedaje (opcional).",
       example: "Perdimos la casa en el sismo; el perro es pequeño y tranquilo.",
     },
   },
@@ -579,8 +581,8 @@ const solicitudCreadaSchema: Schema = {
       type: "string",
       enum: ["nueva", "en_proceso", "emparejada", "hospedada", "cerrada"],
       description:
-        "Estado de la solicitud. Al crearla siempre es `nueva`; el equipo la " +
-        "gestiona desde ahí.",
+        "Estado de la solicitud. Al crearla siempre es `nueva`; de ahí avanza " +
+        "por el ciclo de emparejamiento.",
       example: "nueva",
     },
     createdAt: {
@@ -1002,14 +1004,15 @@ export const openapiSpec: OpenAPISpec = {
     "/api/hogares": {
       get: {
         operationId: "listHogares",
-        summary: "Listar hogares de paso verificados",
+        summary: "Listar hogares de paso disponibles",
         description:
-          "Devuelve la lista pública de hogares de paso: SOLO los que el equipo " +
-          "coordinador ya verificó (llamada + documento) y que no están en pausa. " +
-          "Cada hogar viene proyectado como `HogarPublico`: NUNCA incluye nombre, " +
-          "teléfono, documento ni dirección del anfitrión. El contacto entre las " +
-          "partes es siempre mediado por el equipo coordinador; no hay forma de " +
-          "contactar a un anfitrión a través de esta API.",
+          "Devuelve la lista pública de hogares de paso disponibles (se " +
+          "excluyen los rechazados y los que no están disponibles ahora). El " +
+          "campo `verificacion` indica el estado real de cada dato. Cada hogar " +
+          "viene proyectado como `HogarPublico`: NUNCA incluye nombre, " +
+          "teléfono, documento ni dirección del anfitrión — no hay forma de " +
+          "contactar a un anfitrión a través de esta API; el contacto se " +
+          "comparte solo entre las dos partes al concretarse un hospedaje.",
         tags: ["Hogares de Paso"],
         responses: {
           "200": {
@@ -1019,7 +1022,7 @@ export const openapiSpec: OpenAPISpec = {
                 schema: {
                   type: "array",
                   items: { $ref: "#/components/schemas/HogarPublico" },
-                  description: "Hogares verificados y activos, sanitizados.",
+                  description: "Hogares disponibles, sanitizados.",
                 },
                 example: [
                   {
@@ -1056,12 +1059,11 @@ export const openapiSpec: OpenAPISpec = {
         summary: "Ofrecer una casa como hogar de paso",
         description:
           "Registra un hogar de paso. Los datos personales del anfitrión " +
-          "(nombre, teléfono, documento, dirección) se usan únicamente para la " +
-          "verificación y jamás se publican.\n\n" +
-          "Flujo de verificación: el hogar entra con `verificacion: pendiente` y " +
-          "NO aparece en la lista pública. El equipo coordinador llama al " +
-          "teléfono registrado, valida el documento y solo entonces lo marca " +
-          "como `verificado` y lo publica.\n\n" +
+          "(nombre, teléfono, documento, dirección) se usan únicamente para " +
+          "coordinar el hospedaje y jamás se publican.\n\n" +
+          "El hogar entra con `verificacion: pendiente` y queda publicado de " +
+          "inmediato en la lista con esa etiqueta (plataforma de " +
+          "intermediación: no hay proceso de verificación previo).\n\n" +
           "La respuesta viene sanitizada: devuelve la proyección `HogarPublico`, " +
           "sin datos sensibles — ni siquiera quien registró el hogar recibe de " +
           "vuelta su teléfono o dirección, para que la respuesta sea inofensiva " +
@@ -1076,7 +1078,7 @@ export const openapiSpec: OpenAPISpec = {
                 nombre: "María Fernanda López",
                 telefono: "310 555 1234",
                 documento: "1053812345",
-                direccion: "Solo la ve el equipo coordinador",
+                direccion: "Nunca se publica; se comparte solo al concretar",
                 ciudad: "Manizales",
                 zona: "Cerca al centro",
                 capacidad: 3,
@@ -1092,9 +1094,9 @@ export const openapiSpec: OpenAPISpec = {
         responses: {
           "201": {
             description:
-              "Hogar registrado, pendiente de verificación. La respuesta está " +
-              "sanitizada: solo la proyección pública más un mensaje que " +
-              "explica los siguientes pasos.",
+              "Hogar registrado y publicado. La respuesta está sanitizada: " +
+              "solo la proyección pública más un mensaje que explica los " +
+              "siguientes pasos.",
             content: {
               "application/json": {
                 schema: {
@@ -1105,7 +1107,7 @@ export const openapiSpec: OpenAPISpec = {
                     mensaje: {
                       type: "string",
                       description:
-                        "Mensaje para el anfitrión sobre la llamada de verificación.",
+                        "Mensaje para el anfitrión sobre los siguientes pasos.",
                     },
                   },
                 },
@@ -1125,7 +1127,7 @@ export const openapiSpec: OpenAPISpec = {
                     updatedAt: "2026-08-14T10:00:00.000Z",
                   },
                   mensaje:
-                    "¡Gracias por abrir tu casa! El equipo coordinador te llamará al número que dejaste para verificar los datos. Tu hogar se publica solo después de esa llamada, y tu dirección y teléfono nunca se muestran públicamente.",
+                    "¡Gracias por abrir tu casa! Tu hogar ya quedó publicado con la información general. Tu nombre, teléfono, documento y dirección nunca se muestran públicamente.",
                 },
               },
             },
@@ -1180,9 +1182,9 @@ export const openapiSpec: OpenAPISpec = {
         description:
           "Crea una solicitud de hospedaje. La solicitud es enteramente " +
           "PRIVADA: quien necesita techo nunca aparece en ninguna lista " +
-          "pública, y solo el equipo coordinador la ve. El equipo llama al " +
-          "teléfono registrado, busca un hogar compatible respetando las " +
-          "`preferencias` de convivencia, y media todo el contacto.\n\n" +
+          "pública. Sus datos se usan solo para conectarla con un hogar " +
+          "compatible respetando las `preferencias` de convivencia, que el " +
+          "servidor hace cumplir en todo emparejamiento.\n\n" +
           "Por eso la respuesta es mínima: `{ id, estado, createdAt }` — " +
           "suficiente para guardar el número de radicado, sin eco de los " +
           "datos personales.",

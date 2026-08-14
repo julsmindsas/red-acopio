@@ -1,11 +1,11 @@
 /*
  * "Cómo funciona" de Hogares de Paso (Server Component, contenido estático).
  *
- * Dos columnas espejadas — ofrezco casa / necesito hogar — con los mismos tres
- * pasos: registro → verificación telefónica → conexión con código mutuo. Que
- * ambos lados vean el proceso completo es deliberado: quien abre su casa
- * entiende que a la otra persona también la verificaron, y viceversa. Esa
- * simetría es la que genera confianza para dormir bajo el techo de un extraño.
+ * Dos columnas espejadas — ofrezco casa / necesito hogar — con tres pasos cada
+ * una. El copy es honesto a propósito: Red de Acopio es una plataforma de
+ * intermediación que protege los datos, NO un equipo que llama y verifica
+ * personas. Prometer llamadas que nadie hará destruiría la confianza que este
+ * puente necesita.
  */
 
 interface Paso {
@@ -20,14 +20,14 @@ const PASOS_OFREZCO: Paso[] = [
       "Cuéntanos a quiénes puedes recibir, por cuánto tiempo y quiénes viven contigo. Tus datos personales nunca se publican.",
   },
   {
-    titulo: "Te llamamos para verificar",
+    titulo: "Tu hogar queda publicado al instante",
     detalle:
-      "El equipo coordinador te llama, valida tu documento y confirma lo que declaraste. Solo entonces tu hogar aparece en la lista.",
+      "Aparece en la lista solo con la información general: ciudad, zona, capacidad, a quiénes recibes y quiénes viven contigo. Nada más.",
   },
   {
-    titulo: "Te conectamos con un código de seguridad",
+    titulo: "Se concreta con un código de confirmación",
     detalle:
-      "Cuando haya una familia compatible, tú y ella reciben el mismo código corto. Al llegar lo comparan: si no coincide, nadie entra.",
+      "Cuando una familia coincide contigo, las dos partes comparten contacto y un mismo código corto. Al llegar lo comparan: si no coincide, nadie entra.",
   },
 ];
 
@@ -35,17 +35,17 @@ const PASOS_NECESITO: Paso[] = [
   {
     titulo: "Cuéntanos quiénes son",
     detalle:
-      "Cuántas personas, si van con mascotas y con qué tipo de hogar te sentirías segura. Tu solicitud nunca se publica: solo la ve el equipo.",
+      "Cuántas personas, si van con mascotas y con qué tipo de hogar te sentirías segura. Tu solicitud es privada: nunca aparece publicada.",
   },
   {
-    titulo: "Te llamamos para verificar",
+    titulo: "Explora los hogares y solicita",
     detalle:
-      "El equipo confirma tu situación por teléfono y busca un hogar verificado que respete tus preferencias. Nunca proponemos uno que las viole.",
+      "Mira la lista, fíjate en quiénes viven en cada casa y solicita el hogar que te sirva. Tus preferencias de convivencia se respetan siempre.",
   },
   {
-    titulo: "Llegas con un código de seguridad",
+    titulo: "Llega con el código de confirmación",
     detalle:
-      "Tú y el anfitrión reciben el mismo código corto. Al llegar lo comparan: si no coincide, no entres y llámanos de inmediato.",
+      "Al concretarse el hospedaje, tú y el anfitrión tendrán el mismo código corto. Al llegar compárenlo: si no coincide, no entres.",
   },
 ];
 
@@ -99,8 +99,9 @@ export default function ComoFunciona() {
         Cómo funciona
       </h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-foreground/70">
-        Nadie llega a una casa sin que el equipo haya verificado a las dos
-        partes. Tres pasos, sean cuales sean tus zapatos:
+        Red de Acopio es el puente: protege tus datos y conecta a las dos
+        partes, pero no verifica personas — la decisión final siempre es tuya.
+        Tres pasos, sean cuales sean tus zapatos:
       </p>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <Columna etiqueta="Ofrezco mi casa" emoji="🔑" pasos={PASOS_OFREZCO} />

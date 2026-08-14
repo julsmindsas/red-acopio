@@ -177,19 +177,19 @@ export default function OfrecerForm() {
         </h2>
         <div className="mx-auto mt-3 max-w-md space-y-2 text-left text-sm text-brand-800">
           <p>
-            <strong>1. Te llamamos.</strong> El equipo coordinador te contactará
-            al teléfono que dejaste para verificar tus datos. Hasta entonces, tu
-            hogar no aparece en ninguna lista.
+            <strong>1. Tu hogar ya está publicado, sin tus datos.</strong> Solo
+            se muestra la ciudad, la zona, a quiénes recibes y qué ofreces.
+            Nunca tu nombre, teléfono, documento ni dirección.
           </p>
           <p>
-            <strong>2. Publicamos tu hogar, sin tus datos.</strong> Solo se
-            muestra la ciudad, la zona, a quiénes recibes y qué ofreces. Nunca
-            tu nombre, teléfono, documento ni dirección.
+            <strong>2. Alguien lo solicita.</strong> Las solicitudes son
+            privadas; cuando una familia coincida contigo, las dos partes
+            comparten el contacto — nunca antes.
           </p>
           <p>
-            <strong>3. Código mutuo al emparejar.</strong> Cuando haya una
-            persona para tu hogar, tú y ella recibirán el mismo código corto.
-            Compárenlo al llegar: si no coincide, no abras y llámanos.
+            <strong>3. Código mutuo al concretarse.</strong> Tú y esa persona
+            tendrán el mismo código corto. Compárenlo al llegar: si no
+            coincide, no abras la puerta.
           </p>
         </div>
         <div className="mt-5 flex flex-col items-center justify-center gap-2 sm:flex-row">
@@ -244,7 +244,7 @@ export default function OfrecerForm() {
         htmlFor="telefono"
         required
         error={errFor("telefono")}
-        hint="Por aquí te llama el equipo para verificar. Nunca se publica."
+        hint="Solo se usa para coordinar el hospedaje. Nunca se publica."
       >
         <input
           id="telefono"
@@ -265,7 +265,7 @@ export default function OfrecerForm() {
         label="Documento (opcional)"
         htmlFor="documento"
         error={errFor("documento")}
-        hint="Solo para verificación, nunca se publica."
+        hint="Opcional. Nunca se publica ni se comparte."
       >
         <input
           id="documento"
@@ -405,7 +405,7 @@ export default function OfrecerForm() {
           ¿Qué ofreces además del techo?
         </legend>
         <p className="mt-0.5 text-xs text-foreground/55">
-          Opcional. Ayuda al equipo a proponer el hogar adecuado.
+          Opcional. Ayuda a que te encuentre la familia adecuada.
         </p>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {HOGAR_OFRECE.map((v) => {
@@ -489,9 +489,8 @@ export default function OfrecerForm() {
         </legend>
         <p className="mt-0.5 text-xs text-foreground/60">
           Lo preguntamos por transparencia y por la seguridad de quien llega:
-          una persona puede elegir el tipo de hogar donde se sienta segura, y el
-          equipo lo confirma en la llamada de verificación. Nunca se publican
-          nombres, solo la categoría.
+          una persona puede elegir el tipo de hogar donde se sienta segura.
+          Nunca se publican nombres, solo la categoría.
         </p>
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {CONVIVENCIAS.map((v) => {
@@ -553,8 +552,8 @@ export default function OfrecerForm() {
           <strong className="font-semibold">
             Tu nombre, teléfono, documento y dirección nunca se publican.
           </strong>{" "}
-          El equipo te llamará para verificar antes de que tu hogar aparezca en
-          la lista.
+          Tu hogar aparece en la lista solo con la información general que
+          declaraste aquí.
         </p>
       </div>
 

@@ -31,8 +31,11 @@ export function razonesIncompatibilidad(
 ): string[] {
   const razones: string[] = [];
 
-  if (hogar.verificacion !== "verificado") {
-    razones.push("El hogar aún no está verificado.");
+  // Un hogar rechazado nunca recibe a nadie. La verificación, en cambio, es
+  // opcional: la plataforma es de intermediación y publica hogares sin
+  // verificar (etiquetados como tales); exigirla aquí congelaría los matches.
+  if (hogar.verificacion === "rechazado") {
+    razones.push("El hogar fue rechazado y no puede recibir solicitudes.");
   }
   if (hogar.disponibilidad !== "disponible") {
     razones.push("El hogar no está disponible ahora.");

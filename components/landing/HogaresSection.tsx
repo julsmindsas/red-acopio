@@ -10,8 +10,8 @@ import Link from "next/link";
  * esmeralda de MascotasSection) porque aquí el mensaje es hogar y calor humano,
  * no logística. Mantiene la malla cartográfica y los rounded-3xl del resto.
  *
- * La mención a la verificación del equipo no es letra pequeña: es lo que hace
- * que alguien se atreva a abrir su puerta o a dormir en casa de un extraño.
+ * La línea de confianza del cierre es honesta a propósito: la plataforma
+ * protege los datos y da un código de confirmación, pero NO verifica personas.
  */
 
 export default function HogaresSection() {
@@ -96,10 +96,10 @@ export default function HogaresSection() {
 
           {/* Confianza: la razón por la que este puente funciona */}
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/80">
-            <span aria-hidden="true">🛡️</span> Todo pasa por la verificación
-            del equipo coordinador: nadie ve tu teléfono ni tu dirección, y al
-            emparejar ambas partes reciben un código para confirmarse al
-            llegar.
+            <span aria-hidden="true">🛡️</span> Nadie ve tu teléfono ni tu
+            dirección: la plataforma hace el puente y, al concretarse un
+            hospedaje, ambas partes reciben el mismo código para confirmarse
+            al llegar.
           </p>
         </div>
       </div>

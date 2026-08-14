@@ -34,8 +34,8 @@ export default function OfrecerHogarPage() {
           </h1>
           <p className="mt-1 text-sm text-foreground/70">
             Abre las puertas de tu casa por unos días, semanas o más para una
-            familia (o sus mascotas) que perdió la suya en el sismo. El equipo
-            coordinador media todo el contacto.
+            familia (o sus mascotas) que perdió la suya en el sismo. Tus datos
+            personales nunca se publican.
           </p>
         </div>
 
@@ -46,11 +46,12 @@ export default function OfrecerHogarPage() {
           </span>
           <p className="leading-relaxed">
             <strong className="font-semibold">
-              Nadie llega a tu casa sin coordinación.
+              Nadie llega a tu casa sin que tú lo sepas.
             </strong>{" "}
-            Primero te llamamos para verificar tus datos; solo entonces tu hogar
-            aparece en la lista, sin nombre ni dirección. Al emparejarte con
-            alguien, ambos reciben el mismo código y lo comparan al llegar.
+            Tu hogar aparece en la lista sin nombre, teléfono ni dirección: esos
+            datos solo se comparten cuando se concreta un hospedaje contigo. Al
+            concretarse, ambas partes tienen el mismo código y lo comparan al
+            llegar.
           </p>
         </div>
 
