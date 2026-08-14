@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import HelpChannels from "@/components/HelpChannels";
+import SubsidioArriendo from "@/components/SubsidioArriendo";
 import { EMERGENCY } from "@/lib/constants";
 
 /*
@@ -39,6 +40,33 @@ export default function AyudaPage() {
           {EMERGENCY.epicenter}, el {fecha}. Estos son los canales oficiales
           para atender la emergencia, buscar a un familiar y donar.
         </p>
+
+        {/* Va antes que los canales: perder la casa es el problema que dura
+            meses, y esta ayuda ya está aprobada pero casi nadie la conoce. */}
+        <div className="mt-6">
+          <SubsidioArriendo />
+        </div>
+
+        {/* Mismo público que el subsidio: quien perdió la casa. Los hogares de
+            paso resuelven el "esta noche" mientras el subsidio resuelve los
+            meses; por eso van juntos y sin repetir la explicación completa. */}
+        <div className="mt-4 rounded-2xl border border-border bg-surface-muted p-5">
+          <h2 className="text-sm font-bold text-foreground">
+            <span aria-hidden="true">🏡</span> ¿Necesitas dónde quedarte ya?
+          </h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-foreground/70">
+            Hay familias que abren su casa para hospedar temporalmente a
+            damnificados, con mascotas incluidas. Todo el contacto pasa por el
+            equipo coordinador: nadie ve tus datos ni tu dirección.
+          </p>
+          <Link
+            href="/hogares"
+            className="mt-3 inline-flex h-11 items-center gap-1.5 rounded-full bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition-colors hover:bg-brand-700"
+          >
+            <span aria-hidden="true">🏡</span>
+            Ver hogares de paso
+          </Link>
+        </div>
 
         <div className="mt-6">
           <HelpChannels />

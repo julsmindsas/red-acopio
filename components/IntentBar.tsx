@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { track } from "@vercel/analytics";
 import { INTENTS } from "@/lib/intents";
 import type { PointKind } from "@/lib/types";
@@ -76,6 +77,32 @@ export default function IntentBar({
           );
         })}
       </div>
+
+      {/* Quien perdió la casa necesita algo que dure más que un albergue. */}
+      <Link
+        href="/ayuda#subsidio-titulo"
+        className="flex min-h-11 items-center gap-2 rounded-xl border border-brand-300 bg-brand-50 px-3.5 text-sm font-semibold text-brand-900 transition-colors hover:bg-brand-100"
+      >
+        <span aria-hidden="true">🏘️</span>
+        <span>
+          ¿Tu casa quedó inhabitable? El Gobierno paga arriendo —{" "}
+          <span className="underline underline-offset-2">cómo pedirlo</span>
+        </span>
+      </Link>
+
+      {/* Y quien no tiene a dónde llegar esta noche, necesita una casa, no un trámite. */}
+      <Link
+        href="/hogares"
+        className="flex min-h-11 items-center gap-2 rounded-xl border border-brand-300 bg-brand-50 px-3.5 text-sm font-semibold text-brand-900 transition-colors hover:bg-brand-100"
+      >
+        <span aria-hidden="true">🏡</span>
+        <span>
+          ¿Sin dónde quedarte? Hay familias que abren su casa —{" "}
+          <span className="underline underline-offset-2">
+            ver hogares de paso
+          </span>
+        </span>
+      </Link>
 
       {anyActive && (
         <button
