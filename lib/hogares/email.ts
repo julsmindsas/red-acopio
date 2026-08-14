@@ -108,40 +108,78 @@ export function baseUrl(): string {
 }
 
 // ---------------------------------------------------------------------------
-// Envío (Resend REST)
+// Envío: SMTP del buzón propio (preferido) o Resend
 // ---------------------------------------------------------------------------
 
-/**
- * Remitente. Sin dominio propio se usa el de pruebas de Resend; cuando haya
- * dominio verificado basta con definir RESEND_FROM_EMAIL.
+/*
+ * Por qué SMTP primero: mandar por el buzón que la organización ya tiene
+ * (cualquier proveedor: Google, Outlook, el hosting propio…) no exige registrar
+ * ni verificar ningún dominio — la autenticación SPF/DKIM ya la resuelve ese
+ * proveedor, así que el correo llega a cualquier destinatario desde el primer
+ * día. Resend queda como alternativa para cuando haya un dominio verificado.
  */
+
+/** Remitente: el buzón SMTP configurado, o el de pruebas de Resend. */
 function remitente(): string {
+  if (process.env.SMTP_FROM_EMAIL) {
+    return `Red de Acopio <${process.env.SMTP_FROM_EMAIL}>`;
+  }
+  if (process.env.SMTP_USER) {
+    return `Red de Acopio <${process.env.SMTP_USER}>`;
+  }
   return process.env.RESEND_FROM_EMAIL || "Red de Acopio <onboarding@resend.dev>";
 }
 
-/**
- * Envía un correo. Devuelve `true` si Resend lo aceptó. Nunca lanza: el flujo
- * principal (registrar un hogar, crear una solicitud) no debe fallar porque
- * el correo falle.
- */
-export async function enviarCorreo(opts: {
+/** `true` si hay un buzón SMTP configurado. */
+function smtpConfigurado(): boolean {
+  return Boolean(
+    process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD,
+  );
+}
+
+/** Envía por el buzón propio vía SMTP. */
+async function enviarPorSmtp(opts: {
   to: string;
   subject: string;
   html: string;
 }): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn(
-      "[hogares/email] RESEND_API_KEY ausente: correo omitido →",
-      opts.subject,
-    );
+  try {
+    const nodemailer = (await import("nodemailer")).default;
+    const port = Number(process.env.SMTP_PORT ?? 465);
+    const transport = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      // 465 es SMTPS (TLS directo); 587 negocia STARTTLS.
+      secure: port === 465,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
+    await transport.sendMail({
+      from: remitente(),
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+    });
+    return true;
+  } catch (err) {
+    console.error("[hogares/email] SMTP falló", err);
     return false;
   }
+}
+
+/** Envía por la API de Resend (requiere dominio verificado para terceros). */
+async function enviarPorResend(opts: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<boolean> {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -164,6 +202,25 @@ export async function enviarCorreo(opts: {
     console.error("[hogares/email] fallo de red al enviar", err);
     return false;
   }
+}
+
+/**
+ * Envía un correo por el canal disponible. Nunca lanza: el flujo principal
+ * (registrar un hogar, crear una solicitud) no debe fallar porque el correo
+ * falle — una familia no se queda sin techo por un problema de SMTP.
+ */
+export async function enviarCorreo(opts: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<boolean> {
+  if (smtpConfigurado()) return enviarPorSmtp(opts);
+  if (process.env.RESEND_API_KEY) return enviarPorResend(opts);
+  console.warn(
+    "[hogares/email] sin SMTP ni RESEND_API_KEY: correo omitido →",
+    opts.subject,
+  );
+  return false;
 }
 
 // ---------------------------------------------------------------------------
