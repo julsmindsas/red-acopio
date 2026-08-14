@@ -45,13 +45,14 @@ export default async function Home() {
 
       <main className="flex flex-1 flex-col">
         <Hero />
+        {/* Hogares de paso es LA sección principal de la portada: a esta
+            altura de la emergencia, quien sigue sin techo necesita algo que
+            dure más que una noche de albergue, y quien quiere ayudar ya donó
+            lo que podía donar — abrir su casa es el siguiente paso. */}
+        <HogaresSection />
         <Stats centers={centers} />
         <Steps />
         <Features />
-        {/* Hogares de paso va antes que mascotas: dormir bajo techo es más
-            urgente que donar insumos, y ambos paneles cuentan la misma
-            historia de cuidado (personas primero, sus animales después). */}
-        <HogaresSection />
         <MascotasSection />
         <ApiTeaser />
         <OpenSource />

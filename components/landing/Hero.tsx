@@ -47,8 +47,36 @@ export default function Hero() {
             en Manizales, Pereira, Armenia, Cali, Quibdó y el resto del país.
           </p>
 
+          {/* Hogares de paso: la intención principal de la portada. Va antes
+              y más grande que el resto porque una familia que te recibe
+              resuelve más que una noche de albergue — y casi nadie sabe
+              todavía que existe. */}
+          <Link
+            href="/hogares"
+            className="group mt-7 flex items-center gap-3.5 rounded-2xl border-2 border-accent-400 bg-gradient-to-r from-accent-50 to-accent-100 px-4 py-4 shadow-sm transition-colors hover:border-accent-500 hover:to-accent-200"
+          >
+            <span aria-hidden="true" className="text-4xl leading-none">
+              🏡
+            </span>
+            <span className="flex-1 leading-tight">
+              <span className="block text-base font-bold text-foreground sm:text-lg">
+                Hogares de paso: familias que abren su casa
+              </span>
+              <span className="mt-0.5 block text-sm text-foreground/70">
+                Para ti y tus mascotas, con verificación del equipo — o ofrece
+                la tuya
+              </span>
+            </span>
+            <span
+              aria-hidden="true"
+              className="text-xl font-bold text-accent-700 transition-transform group-hover:translate-x-0.5"
+            >
+              →
+            </span>
+          </Link>
+
           {/* Entrada por intención: un toque desde la portada al mapa filtrado */}
-          <div className="mt-7 grid gap-2.5 sm:grid-cols-3">
+          <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
             {INTENTS.map((intent) => (
               <Link
                 key={intent.id}
