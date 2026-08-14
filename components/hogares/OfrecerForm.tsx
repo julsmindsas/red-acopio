@@ -38,6 +38,7 @@ export default function OfrecerForm() {
   // --- Estado del formulario ----------------------------------------------
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [email, setEmail] = useState("");
   const [documento, setDocumento] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [zona, setZona] = useState("");
@@ -83,6 +84,7 @@ export default function OfrecerForm() {
   const resetForm = useCallback(() => {
     setNombre("");
     setTelefono("");
+    setEmail("");
     setDocumento("");
     setCiudad("");
     setZona("");
@@ -106,6 +108,7 @@ export default function OfrecerForm() {
     const candidate = {
       nombre,
       telefono,
+      email,
       documento: documento.trim() === "" ? null : documento,
       direccion: direccion.trim() === "" ? null : direccion,
       ciudad,
@@ -182,14 +185,14 @@ export default function OfrecerForm() {
             Nunca tu nombre, teléfono, documento ni dirección.
           </p>
           <p>
-            <strong>2. Alguien lo solicita.</strong> Las solicitudes son
-            privadas; cuando una familia coincida contigo, las dos partes
-            comparten el contacto — nunca antes.
+            <strong>2. Te llega un correo por cada solicitud.</strong> Con el
+            resumen del grupo (sin datos personales) y dos botones: aceptar o
+            rechazar. Nada se concreta sin tu sí.
           </p>
           <p>
-            <strong>3. Código mutuo al concretarse.</strong> Tú y esa persona
-            tendrán el mismo código corto. Compárenlo al llegar: si no
-            coincide, no abras la puerta.
+            <strong>3. Código mutuo al aceptar.</strong> Tú y esa persona
+            reciben el contacto del otro y el mismo código corto. Compárenlo
+            al llegar: si no coincide, no abras la puerta.
           </p>
         </div>
         <div className="mt-5 flex flex-col items-center justify-center gap-2 sm:flex-row">
@@ -258,6 +261,28 @@ export default function OfrecerForm() {
           aria-invalid={!!errFor("telefono")}
           aria-describedby={errFor("telefono") ? "telefono-error" : undefined}
           className={inputClass(!!errFor("telefono"))}
+        />
+      </Field>
+
+      <Field
+        label="Correo electrónico"
+        htmlFor="email"
+        required
+        error={errFor("email")}
+        hint="Aquí te avisamos cada solicitud, con botones para aceptar o rechazar. Nunca se publica."
+      >
+        <input
+          id="email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Ej. maria@correo.com"
+          aria-invalid={!!errFor("email")}
+          aria-describedby={errFor("email") ? "email-error" : undefined}
+          className={inputClass(!!errFor("email"))}
         />
       </Field>
 

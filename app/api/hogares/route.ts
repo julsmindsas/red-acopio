@@ -19,6 +19,13 @@ import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth";
 import { toHogarPublico } from "@/lib/hogares/types";
 import { hogarInputSchema } from "@/lib/hogares/validation";
 import { getHogaresRepository } from "@/lib/hogares/store";
+import {
+  baseUrl,
+  correoBienvenidaAnfitrion,
+  crearToken,
+  enlacesHabilitados,
+  enviarCorreo,
+} from "@/lib/hogares/email";
 import { formatZodErrors } from "@/lib/validation";
 
 // La disponibilidad de los hogares cambia a cada rato; nada de caché.
@@ -103,11 +110,24 @@ export async function POST(req: Request) {
     // El store fija verificacion "pendiente" y disponibilidad "disponible".
     const hogar = await getHogaresRepository().createHogar(result.data);
 
+    // Bienvenida con el enlace de autogestión (pausar/reactivar sin cuentas).
+    // Mejor esfuerzo: el registro nunca falla porque el correo falle.
+    if (hogar.email && enlacesHabilitados()) {
+      try {
+        const token = crearToken({ acc: "pausar", hid: hogar.id }, 180);
+        const url = `${baseUrl()}/hogares/respuesta?token=${encodeURIComponent(token)}`;
+        const correo = correoBienvenidaAnfitrion(hogar, url);
+        void enviarCorreo({ to: hogar.email, ...correo });
+      } catch (err) {
+        console.error("[POST /api/hogares] correo de bienvenida", err);
+      }
+    }
+
     return Response.json(
       {
         hogar: toHogarPublico(hogar),
         mensaje:
-          "¡Gracias por abrir tu casa! Tu hogar ya quedó publicado con la información general. Tu nombre, teléfono, documento y dirección nunca se muestran públicamente.",
+          "¡Gracias por abrir tu casa! Tu hogar ya quedó publicado con la información general. Tu nombre, teléfono, documento y dirección nunca se muestran públicamente. Cuando alguien lo solicite, te llegará un correo para aceptar o rechazar.",
       },
       { status: 201 },
     );

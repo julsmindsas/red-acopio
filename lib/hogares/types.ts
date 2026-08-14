@@ -115,6 +115,12 @@ export interface Hogar {
   nombre: string;
   /** Teléfono del anfitrión; por aquí se hace la verificación. */
   telefono: string;
+  /**
+   * Correo del anfitrión: el canal por el que se entera de cada solicitud y
+   * la acepta o rechaza (enlaces firmados, sin cuentas). Nulo solo en
+   * registros anteriores a esta función.
+   */
+  email: string | null;
   /** Cédula u otro documento, para la verificación. */
   documento: string | null;
   /** Dirección exacta. Solo se comparte con la persona ya emparejada. */
@@ -168,7 +174,7 @@ export interface HogarPublico {
  * toda la seguridad del programa. Esta barrera técnica corre SIEMPRE, en la
  * frontera pública, sin depender de que alguien recuerde limpiar el campo.
  */
-function retirarDatosDeContacto(texto: string | null): string | null {
+export function retirarDatosDeContacto(texto: string | null): string | null {
   if (!texto) return texto;
   return (
     texto
@@ -204,6 +210,7 @@ export function toHogarPublico(h: Hogar): HogarPublico {
 export interface HogarInput {
   nombre: string;
   telefono: string;
+  email: string;
   documento?: string | null;
   direccion?: string | null;
   ciudad: string;
@@ -250,10 +257,20 @@ export interface SolicitudHogar {
   id: string;
   nombre: string;
   telefono: string;
+  /** Correo del solicitante (opcional): por aquí se le avisa del resultado. */
+  email: string | null;
   /** Ciudad donde necesita el hospedaje. */
   ciudad: string;
-  /** Cuántas personas son. */
+  /**
+   * Cuántas personas son. Puede ser 0: un rescatista puede pedir hogar solo
+   * para un animal (la composición entonces trae únicamente mascotas).
+   */
   personas: number;
+  /**
+   * Hogar concreto que le interesó (botón "Solicitar este hogar"). Dispara la
+   * notificación por correo a ese anfitrión para que acepte o rechace.
+   */
+  hogarInteresId: string | null;
   /** Quiénes componen el grupo (mujeres, niños, mascotas...). */
   composicion: HogarAcepta[];
   /**
@@ -286,10 +303,12 @@ export interface SolicitudHogar {
 export interface SolicitudInput {
   nombre: string;
   telefono: string;
+  email?: string | null;
   ciudad: string;
   personas: number;
   composicion: HogarAcepta[];
   preferencias?: Convivencia[];
+  hogarInteresId?: string | null;
   notas?: string | null;
 }
 

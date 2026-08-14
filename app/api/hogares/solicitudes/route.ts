@@ -14,6 +14,13 @@ import type { ApiError } from "@/lib/types";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth";
 import { solicitudInputSchema } from "@/lib/hogares/validation";
 import { getHogaresRepository } from "@/lib/hogares/store";
+import {
+  baseUrl,
+  correoNuevaSolicitud,
+  crearToken,
+  enlacesHabilitados,
+  enviarCorreo,
+} from "@/lib/hogares/email";
 import { formatZodErrors } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +73,32 @@ export async function POST(req: Request) {
     }
 
     // El store fija estado "nueva"; el equipo la toma desde su panel.
-    const solicitud = await getHogaresRepository().createSolicitud(result.data);
+    const repo = getHogaresRepository();
+    const solicitud = await repo.createSolicitud(result.data);
+
+    // Si la solicitud señaló un hogar concreto, se le avisa a ese anfitrión
+    // por correo con un enlace firmado para aceptar o rechazar. Mejor
+    // esfuerzo: un fallo de correo jamás tumba el registro de la solicitud.
+    if (solicitud.hogarInteresId && enlacesHabilitados()) {
+      try {
+        const hogar = await repo.getHogarById(solicitud.hogarInteresId);
+        if (
+          hogar?.email &&
+          hogar.verificacion !== "rechazado" &&
+          hogar.disponibilidad === "disponible"
+        ) {
+          const token = crearToken(
+            { acc: "responder", hid: hogar.id, sid: solicitud.id },
+            14,
+          );
+          const url = `${baseUrl()}/hogares/respuesta?token=${encodeURIComponent(token)}`;
+          const correo = correoNuevaSolicitud(hogar, solicitud, url);
+          void enviarCorreo({ to: hogar.email, ...correo });
+        }
+      } catch (err) {
+        console.error("[POST /api/hogares/solicitudes] aviso al anfitrión", err);
+      }
+    }
 
     return Response.json(
       {

@@ -26,8 +26,8 @@ import type { ApiError } from "@/lib/types";
  * el formulario pide lo mínimo y lo dice en el aviso antes de enviar.
  *
  * Si la persona llegó desde la tarjeta de un hogar (?hogar=ID en la URL), la
- * página nos pasa ese ID y lo dejamos anotado en las notas iniciales: así el
- * la solicitud registra qué hogar le interesó sin otro campo en el esquema.
+ * página nos pasa ese ID y viaja como `hogarInteresId`: el servidor le avisa
+ * por correo a ese anfitrión para que acepte o rechace con un enlace firmado.
  */
 
 const EMPTY_ERRORS: Record<string, string[]> = {};
@@ -41,14 +41,13 @@ export default function SolicitarForm({
   // --- Estado del formulario ----------------------------------------------
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [email, setEmail] = useState("");
   const [ciudad, setCiudad] = useState("");
   // Como string para no pelear con inputs numéricos vacíos.
   const [personas, setPersonas] = useState("");
   const [composicion, setComposicion] = useState<Set<HogarAcepta>>(new Set());
   const [preferencias, setPreferencias] = useState<Set<Convivencia>>(new Set());
-  const [notas, setNotas] = useState(
-    hogarInteres ? `Interesada en el hogar ${hogarInteres}. ` : "",
-  );
+  const [notas, setNotas] = useState("");
 
   // --- Estado de envío / errores ------------------------------------------
   const [fieldErrors, setFieldErrors] =
@@ -82,6 +81,7 @@ export default function SolicitarForm({
   const resetForm = useCallback(() => {
     setNombre("");
     setTelefono("");
+    setEmail("");
     setCiudad("");
     setPersonas("");
     setComposicion(new Set());
@@ -98,10 +98,13 @@ export default function SolicitarForm({
     const candidate = {
       nombre,
       telefono,
+      email: email.trim() === "" ? null : email,
       ciudad,
       personas: personas === "" ? undefined : Number(personas),
       composicion: Array.from(composicion),
       preferencias: Array.from(preferencias),
+      // El hogar que le interesó dispara el correo a ese anfitrión.
+      hogarInteresId: hogarInteres,
       notas: notas.trim() === "" ? null : notas,
     };
 
@@ -167,6 +170,8 @@ export default function SolicitarForm({
             Tu solicitud quedó registrada de forma <strong>privada</strong>:
             no aparece publicada en ninguna parte y solo se usa para
             conectarte con un hogar que respete tus preferencias.
+            {hogarInteres &&
+              " Al hogar que elegiste ya le avisamos por correo; si acepta, te contactará."}
           </p>
           <p>
             <strong>Tu código de seguridad:</strong> al concretarse un hogar
@@ -243,6 +248,27 @@ export default function SolicitarForm({
       </Field>
 
       <Field
+        label="Correo electrónico (opcional)"
+        htmlFor="email"
+        error={errFor("email")}
+        hint="Si lo dejas, te avisamos por correo cuando un hogar te acepte, con el contacto y el código."
+      >
+        <input
+          id="email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Ej. carlos@correo.com"
+          aria-invalid={!!errFor("email")}
+          aria-describedby={errFor("email") ? "email-error" : undefined}
+          className={inputClass(!!errFor("email"))}
+        />
+      </Field>
+
+      <Field
         label="¿En qué ciudad necesitas hogar?"
         htmlFor="ciudad"
         required
@@ -266,14 +292,14 @@ export default function SolicitarForm({
         htmlFor="personas"
         required
         error={errFor("personas")}
-        hint="Sin contar las mascotas; a ellas las anotas abajo."
+        hint="Sin contar las mascotas; a ellas las anotas abajo. ¿Buscas hogar solo para un animal rescatado? Escribe 0."
       >
         <input
           id="personas"
           name="personas"
           type="number"
           inputMode="numeric"
-          min={1}
+          min={0}
           max={20}
           value={personas}
           onChange={(e) => setPersonas(e.target.value)}

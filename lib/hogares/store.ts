@@ -83,6 +83,7 @@ function buildHogar(input: ValidatedHogarInput): Hogar {
     id: newId("hogar"),
     nombre: input.nombre,
     telefono: input.telefono,
+    email: input.email,
     documento: emptyToNull(input.documento),
     direccion: emptyToNull(input.direccion),
     ciudad: input.ciudad,
@@ -108,10 +109,12 @@ function buildSolicitud(input: ValidatedSolicitudInput): SolicitudHogar {
     id: newId("solicitud"),
     nombre: input.nombre,
     telefono: input.telefono,
+    email: emptyToNull(input.email),
     ciudad: input.ciudad,
     personas: input.personas,
     composicion: input.composicion,
     preferencias: input.preferencias ?? [],
+    hogarInteresId: input.hogarInteresId ?? null,
     notas: emptyToNull(input.notas),
     estado: "nueva",
     hogarId: null,
@@ -148,6 +151,8 @@ function normalizeHogar(raw: Partial<Hogar> & { id: string }): Hogar {
     id: raw.id,
     nombre: raw.nombre ?? "",
     telefono: raw.telefono ?? "",
+    // Registros anteriores al flujo de correo: sin canal de notificación.
+    email: raw.email ?? null,
     documento: raw.documento ?? null,
     direccion: raw.direccion ?? null,
     ciudad: raw.ciudad ?? "",
@@ -176,10 +181,12 @@ function normalizeSolicitud(
     id: raw.id,
     nombre: raw.nombre ?? "",
     telefono: raw.telefono ?? "",
+    email: raw.email ?? null,
     ciudad: raw.ciudad ?? "",
     personas: typeof raw.personas === "number" ? raw.personas : 1,
     composicion: Array.isArray(raw.composicion) ? raw.composicion : [],
     preferencias: Array.isArray(raw.preferencias) ? raw.preferencias : [],
+    hogarInteresId: raw.hogarInteresId ?? null,
     notas: raw.notas ?? null,
     estado: raw.estado ?? "nueva",
     hogarId: raw.hogarId ?? null,
@@ -387,6 +394,7 @@ interface HogarRow {
   id: string;
   nombre: string;
   telefono: string;
+  email: string | null;
   documento: string | null;
   direccion: string | null;
   ciudad: string;
@@ -408,10 +416,12 @@ interface SolicitudRow {
   id: string;
   nombre: string;
   telefono: string;
+  email: string | null;
   ciudad: string;
   personas: number;
   composicion: unknown;
   preferencias: unknown;
+  hogar_interes_id: string | null;
   notas: string | null;
   estado: string;
   hogar_id: string | null;
@@ -443,6 +453,7 @@ function rowToHogar(row: HogarRow): Hogar {
     id: row.id,
     nombre: row.nombre,
     telefono: row.telefono,
+    email: row.email,
     documento: row.documento,
     direccion: row.direccion,
     ciudad: row.ciudad,
@@ -465,10 +476,12 @@ function rowToSolicitud(row: SolicitudRow): SolicitudHogar {
     id: row.id,
     nombre: row.nombre,
     telefono: row.telefono,
+    email: row.email,
     ciudad: row.ciudad,
     personas: Number(row.personas),
     composicion: parseJsonArray(row.composicion),
     preferencias: parseJsonArray(row.preferencias),
+    hogarInteresId: row.hogar_interes_id,
     notas: row.notas,
     estado: row.estado as SolicitudHogar["estado"],
     hogarId: row.hogar_id,
@@ -508,6 +521,7 @@ class HogaresPostgresStore implements HogaresRepository {
         id             TEXT PRIMARY KEY,
         nombre         TEXT NOT NULL,
         telefono       TEXT NOT NULL,
+        email          TEXT,
         documento      TEXT,
         direccion      TEXT,
         ciudad         TEXT NOT NULL,
@@ -529,10 +543,12 @@ class HogaresPostgresStore implements HogaresRepository {
         id                  TEXT PRIMARY KEY,
         nombre              TEXT NOT NULL,
         telefono            TEXT NOT NULL,
+        email               TEXT,
         ciudad              TEXT NOT NULL,
         personas            INTEGER NOT NULL DEFAULT 1,
         composicion         JSONB NOT NULL DEFAULT '[]',
         preferencias        JSONB NOT NULL DEFAULT '[]',
+        hogar_interes_id    TEXT,
         notas               TEXT,
         estado              TEXT NOT NULL DEFAULT 'nueva',
         hogar_id            TEXT,
@@ -555,6 +571,19 @@ class HogaresPostgresStore implements HogaresRepository {
     await sql`
       ALTER TABLE solicitudes_hogar
         ADD COLUMN IF NOT EXISTS seguimientos JSONB NOT NULL DEFAULT '[]'
+    `;
+    // Flujo de correo al anfitrión (aceptar/rechazar por enlace firmado).
+    await sql`
+      ALTER TABLE hogares
+        ADD COLUMN IF NOT EXISTS email TEXT
+    `;
+    await sql`
+      ALTER TABLE solicitudes_hogar
+        ADD COLUMN IF NOT EXISTS email TEXT
+    `;
+    await sql`
+      ALTER TABLE solicitudes_hogar
+        ADD COLUMN IF NOT EXISTS hogar_interes_id TEXT
     `;
   }
 
@@ -579,12 +608,12 @@ class HogaresPostgresStore implements HogaresRepository {
     const h = buildHogar(input);
     const rows = (await sql`
       INSERT INTO hogares
-        (id, nombre, telefono, documento, direccion, ciudad, zona, capacidad,
-         acepta, ofrece, duracion, convivencia, notas, disponibilidad,
-         verificacion, created_at, updated_at)
+        (id, nombre, telefono, email, documento, direccion, ciudad, zona,
+         capacidad, acepta, ofrece, duracion, convivencia, notas,
+         disponibilidad, verificacion, created_at, updated_at)
       VALUES
-        (${h.id}, ${h.nombre}, ${h.telefono}, ${h.documento}, ${h.direccion},
-         ${h.ciudad}, ${h.zona}, ${h.capacidad},
+        (${h.id}, ${h.nombre}, ${h.telefono}, ${h.email}, ${h.documento},
+         ${h.direccion}, ${h.ciudad}, ${h.zona}, ${h.capacidad},
          ${JSON.stringify(h.acepta)}::jsonb, ${JSON.stringify(h.ofrece)}::jsonb,
          ${h.duracion}, ${h.convivencia}, ${h.notas}, ${h.disponibilidad},
          ${h.verificacion}, ${h.createdAt}::timestamptz, ${h.updatedAt}::timestamptz)
@@ -668,13 +697,16 @@ class HogaresPostgresStore implements HogaresRepository {
     const s = buildSolicitud(input);
     const rows = (await sql`
       INSERT INTO solicitudes_hogar
-        (id, nombre, telefono, ciudad, personas, composicion, preferencias,
-         notas, estado, hogar_id, codigo_verificacion, hospedada_at,
-         seguimientos, created_at, updated_at)
+        (id, nombre, telefono, email, ciudad, personas, composicion,
+         preferencias, hogar_interes_id, notas, estado, hogar_id,
+         codigo_verificacion, hospedada_at, seguimientos, created_at,
+         updated_at)
       VALUES
-        (${s.id}, ${s.nombre}, ${s.telefono}, ${s.ciudad}, ${s.personas},
+        (${s.id}, ${s.nombre}, ${s.telefono}, ${s.email}, ${s.ciudad},
+         ${s.personas},
          ${JSON.stringify(s.composicion)}::jsonb,
          ${JSON.stringify(s.preferencias)}::jsonb,
+         ${s.hogarInteresId},
          ${s.notas}, ${s.estado}, ${s.hogarId}, ${s.codigoVerificacion},
          ${s.hospedadaAt}::timestamptz,
          ${JSON.stringify(s.seguimientos)}::jsonb,

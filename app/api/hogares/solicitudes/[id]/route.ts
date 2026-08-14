@@ -26,8 +26,8 @@
  */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { randomInt } from "crypto";
 import { verifySessionToken, ADMIN_COOKIE } from "@/lib/auth";
+import { generarCodigoVerificacion } from "@/lib/hogares/codigo";
 import { solicitudPatchSchema } from "@/lib/hogares/validation";
 import {
   getHogaresRepository,
@@ -38,22 +38,6 @@ import type { Seguimiento, SolicitudEstado } from "@/lib/hogares/types";
 import { formatZodErrors } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
-
-/**
- * Alfabeto sin caracteres ambiguos (sin 0/O, 1/I/L, 8/B...): el código se
- * dicta por teléfono y se compara a ojo en la puerta de una casa, muchas veces
- * escrito a mano. Cada carácter debe ser inconfundible.
- */
-const CODIGO_ALFABETO = "ACDEFHJKMNPRTUVWXY34679";
-
-/** Genera un código de verificación de 6 caracteres (aleatoriedad de crypto). */
-function generarCodigoVerificacion(): string {
-  let codigo = "";
-  for (let i = 0; i < 6; i++) {
-    codigo += CODIGO_ALFABETO[randomInt(CODIGO_ALFABETO.length)];
-  }
-  return codigo;
-}
 
 /** Comprueba si el error proviene del store de solo lectura. */
 function isReadOnlyError(err: unknown): boolean {
