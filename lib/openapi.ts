@@ -1,7 +1,10 @@
 /**
  * Especificación OpenAPI 3.1 de la API pública de Red de Acopio.
  *
- * Documenta los endpoints públicos /api/v1/centers y /api/v1/centers/{id}.
+ * Documenta los endpoints públicos /api/v1/centers, /api/v1/centers/{id} y
+ * los de Hogares de Paso (/api/hogares y /api/hogares/solicitudes). De los
+ * hogares SOLO se documenta la superficie pública: las rutas del panel del
+ * equipo coordinador son internas y no se anuncian aquí.
  * Se expone en JSON a través de /api/openapi.json para que cualquier cliente
  * (Swagger UI, Redoc, Postman…) pueda importarla sin necesidad de auth.
  *
@@ -257,6 +260,334 @@ const centerInputSchema: Schema = {
       maxLength: 500,
       description: "Notas o aclaraciones adicionales (opcional).",
       example: "Preguntar por la coordinadora en recepción.",
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Esquemas de Hogares de Paso (solo la superficie pública)
+// ---------------------------------------------------------------------------
+// Principio: el contacto entre anfitriones y damnificados es SIEMPRE mediado
+// por el equipo coordinador. Por eso aquí solo se documenta la proyección
+// pública (HogarPublico) y los cuerpos de registro; los datos personales
+// (nombre, teléfono, documento, dirección) jamás salen por la API pública.
+
+const hogarAceptaEnum: Schema = {
+  type: "string",
+  enum: [
+    "mujeres",
+    "hombres",
+    "familias",
+    "ninos",
+    "adultos_mayores",
+    "perros",
+    "gatos",
+    "otras_mascotas",
+  ],
+  description:
+    "A quiénes puede recibir un hogar (y de quiénes se compone una solicitud). " +
+    "ninos=niños y niñas (siempre acompañados de un adulto), " +
+    "otras_mascotas=mascotas distintas de perros y gatos.",
+};
+
+const hogarOfreceEnum: Schema = {
+  type: "string",
+  enum: ["alimentacion", "cama", "cocina", "lavadora", "internet", "transporte"],
+  description:
+    "Qué ofrece el hogar además del techo. " +
+    "alimentacion=comparte comidas, cama=cama o colchón, " +
+    "cocina=acceso a cocina para preparar su comida, " +
+    "transporte=puede recoger o ayudar con pasajes.",
+};
+
+const hogarDuracionEnum: Schema = {
+  type: "string",
+  enum: ["dias", "semanas", "mes_o_mas"],
+  description:
+    "Por cuánto tiempo puede hospedar el hogar. " +
+    "dias=unos días, semanas=hasta un mes, mes_o_mas=un mes o más.",
+};
+
+const convivenciaEnum: Schema = {
+  type: "string",
+  enum: [
+    "mujer_sola",
+    "hombre_solo",
+    "pareja",
+    "familia_con_ninos",
+    "mujeres_adultas",
+    "varias_personas",
+  ],
+  description:
+    "Quiénes viven en la casa, como categoría (nunca nombres). Es el corazón " +
+    "del control de seguridad: permite, por ejemplo, que una mujer sola elija " +
+    "hogares donde viven mujeres. " +
+    "mujeres_adultas=varias mujeres adultas, varias_personas=grupo mixto de adultos.",
+};
+
+const hogarDisponibilidadEnum: Schema = {
+  type: "string",
+  enum: ["disponible", "ocupado", "pausado"],
+  description:
+    "Si el hogar puede recibir gente ahora. " +
+    "ocupado=ya está hospedando, pausado=el anfitrión pidió pausa " +
+    "(los hogares pausados no aparecen en la lista pública).",
+};
+
+const hogarVerificacionEnum: Schema = {
+  type: "string",
+  enum: ["pendiente", "verificado", "rechazado"],
+  description:
+    "Confianza en el hogar. Un hogar NO aparece en la lista pública hasta que " +
+    "el equipo coordinador lo verifica (llamada + documento). " +
+    "pendiente=recién registrado, verificado=llamada hecha y documento validado, " +
+    "rechazado=no pasó la verificación (nunca se publica).",
+};
+
+const hogarPublicoSchema: Schema = {
+  type: "object",
+  description:
+    "Proyección PÚBLICA de un hogar de paso: lo único que ve quien navega la " +
+    "lista. NUNCA incluye nombre, teléfono, documento ni dirección del " +
+    "anfitrión — el contacto se hace siempre a través del equipo coordinador. " +
+    "Los campos de texto libre (zona, notas) pasan además por un filtro " +
+    "automático que retira teléfonos y direcciones.",
+  required: [
+    "id", "ciudad", "zona", "capacidad", "acepta", "ofrece", "duracion",
+    "convivencia", "notas", "disponibilidad", "verificacion", "updatedAt",
+  ],
+  properties: {
+    id: {
+      type: "string",
+      description: "Identificador único del hogar.",
+      example: "hogar-abc123",
+    },
+    ciudad: {
+      type: "string",
+      description: "Ciudad o municipio donde está el hogar.",
+      example: "Manizales",
+    },
+    zona: {
+      type: ["string", "null"],
+      description:
+        "Barrio o zona aproximada; da contexto sin revelar la dirección exacta.",
+      example: "Cerca al centro",
+    },
+    capacidad: {
+      type: "integer",
+      minimum: 1,
+      maximum: 20,
+      description: "Cuántas personas puede hospedar.",
+      example: 3,
+    },
+    acepta: {
+      type: "array",
+      items: { $ref: "#/components/schemas/HogarAcepta" },
+      description: "A quiénes puede recibir el hogar.",
+      example: ["mujeres", "ninos", "gatos"],
+    },
+    ofrece: {
+      type: "array",
+      items: { $ref: "#/components/schemas/HogarOfrece" },
+      description: "Qué ofrece el hogar además del techo.",
+      example: ["alimentacion", "cama", "internet"],
+    },
+    duracion: { $ref: "#/components/schemas/HogarDuracion" },
+    convivencia: { $ref: "#/components/schemas/Convivencia" },
+    notas: {
+      type: ["string", "null"],
+      description:
+        "Aclaraciones del anfitrión, revisadas por el equipo y filtradas " +
+        "automáticamente para retirar datos de contacto.",
+      example: "Tenemos un patio grande, las mascotas son bienvenidas.",
+    },
+    disponibilidad: { $ref: "#/components/schemas/HogarDisponibilidad" },
+    verificacion: { $ref: "#/components/schemas/HogarVerificacion" },
+    updatedAt: {
+      type: "string",
+      format: "date-time",
+      description: "Fecha de última actualización en formato ISO 8601.",
+      example: "2026-08-12T09:00:00.000Z",
+    },
+  },
+};
+
+const hogarInputSchema: Schema = {
+  type: "object",
+  description:
+    "Datos que envía quien ofrece su casa como hogar de paso. Los datos " +
+    "personales (nombre, teléfono, documento, dirección) se usan SOLO para la " +
+    "verificación del equipo coordinador y jamás se publican.",
+  required: [
+    "nombre", "telefono", "ciudad", "capacidad", "acepta", "duracion", "convivencia",
+  ],
+  properties: {
+    nombre: {
+      type: "string",
+      minLength: 3,
+      maxLength: 120,
+      description:
+        "Nombre completo del anfitrión. Privado: solo lo ve el equipo coordinador.",
+      example: "María Fernanda López",
+    },
+    telefono: {
+      type: "string",
+      pattern: "^[+]?[\\d\\s()-]{7,20}$",
+      description:
+        "Teléfono del anfitrión; por aquí se hace la llamada de verificación. " +
+        "Privado: nunca se publica.",
+      example: "310 555 1234",
+    },
+    documento: {
+      type: ["string", "null"],
+      minLength: 5,
+      maxLength: 20,
+      description:
+        "Cédula u otro documento, para la verificación (opcional al registrarse). Privado.",
+      example: "1053812345",
+    },
+    direccion: {
+      type: ["string", "null"],
+      maxLength: 200,
+      description:
+        "Dirección exacta (opcional). Privada: solo se comparte con la persona " +
+        "ya emparejada, a través del equipo.",
+      example: "Se comparte solo con quien llega, nunca en la API pública.",
+    },
+    ciudad: {
+      type: "string",
+      minLength: 2,
+      maxLength: 80,
+      description: "Ciudad o municipio donde está el hogar.",
+      example: "Manizales",
+    },
+    zona: {
+      type: ["string", "null"],
+      maxLength: 80,
+      description: "Barrio o zona aproximada (opcional); esto sí se publica.",
+      example: "Cerca al centro",
+    },
+    capacidad: {
+      type: "integer",
+      minimum: 1,
+      maximum: 20,
+      description: "Cuántas personas puede hospedar.",
+      example: 3,
+    },
+    acepta: {
+      type: "array",
+      minItems: 1,
+      items: { $ref: "#/components/schemas/HogarAcepta" },
+      description:
+        "A quiénes puede recibir. Regla de seguridad: si incluye `ninos`, debe " +
+        "incluir también `familias` o algún adulto — un menor nunca llega solo " +
+        "a casa de un extraño.",
+      example: ["mujeres", "ninos"],
+    },
+    ofrece: {
+      type: "array",
+      items: { $ref: "#/components/schemas/HogarOfrece" },
+      description: "Qué ofrece además del techo (opcional).",
+      example: ["alimentacion", "cama"],
+    },
+    duracion: { $ref: "#/components/schemas/HogarDuracion" },
+    convivencia: { $ref: "#/components/schemas/Convivencia" },
+    notas: {
+      type: ["string", "null"],
+      maxLength: 500,
+      description:
+        "Aclaraciones adicionales (opcional). No escribas aquí tu teléfono ni " +
+        "tu dirección: se retiran automáticamente antes de publicar.",
+      example: "Tenemos un patio grande.",
+    },
+  },
+};
+
+const solicitudInputSchema: Schema = {
+  type: "object",
+  description:
+    "Datos que envía quien necesita hospedaje. La solicitud es enteramente " +
+    "PRIVADA: solo la ve el equipo coordinador, que llama para buscar un hogar " +
+    "compatible.",
+  required: ["nombre", "telefono", "ciudad", "personas", "composicion"],
+  properties: {
+    nombre: {
+      type: "string",
+      minLength: 3,
+      maxLength: 120,
+      description: "Nombre completo de quien solicita. Privado.",
+      example: "Carlos Andrés Gómez",
+    },
+    telefono: {
+      type: "string",
+      pattern: "^[+]?[\\d\\s()-]{7,20}$",
+      description: "Teléfono de contacto; por aquí llama el equipo. Privado.",
+      example: "+57 301 222 3344",
+    },
+    ciudad: {
+      type: "string",
+      minLength: 2,
+      maxLength: 80,
+      description: "Ciudad donde necesita el hospedaje.",
+      example: "Manizales",
+    },
+    personas: {
+      type: "integer",
+      minimum: 1,
+      maximum: 20,
+      description: "Cuántas personas son.",
+      example: 4,
+    },
+    composicion: {
+      type: "array",
+      minItems: 1,
+      items: { $ref: "#/components/schemas/HogarAcepta" },
+      description: "Quiénes componen el grupo (mujeres, niños, mascotas...).",
+      example: ["mujeres", "ninos", "perros"],
+    },
+    preferencias: {
+      type: "array",
+      items: { $ref: "#/components/schemas/Convivencia" },
+      description:
+        "Con qué tipo de hogar se sentiría segura la persona (opcional). El " +
+        "equipo NO propone emparejamientos que violen estas preferencias.",
+      example: ["mujer_sola", "mujeres_adultas"],
+    },
+    notas: {
+      type: ["string", "null"],
+      maxLength: 500,
+      description: "Contexto adicional para el equipo (opcional).",
+      example: "Perdimos la casa en el sismo; el perro es pequeño y tranquilo.",
+    },
+  },
+};
+
+const solicitudCreadaSchema: Schema = {
+  type: "object",
+  description:
+    "Respuesta mínima al crear una solicitud: apenas el número de radicado. " +
+    "No hay eco de los datos personales, así la respuesta es inofensiva en " +
+    "logs y devtools.",
+  required: ["id", "estado", "createdAt"],
+  properties: {
+    id: {
+      type: "string",
+      description: "Identificador de la solicitud (número de radicado).",
+      example: "solicitud-xyz789",
+    },
+    estado: {
+      type: "string",
+      enum: ["nueva", "en_proceso", "emparejada", "hospedada", "cerrada"],
+      description:
+        "Estado de la solicitud. Al crearla siempre es `nueva`; el equipo la " +
+        "gestiona desde ahí.",
+      example: "nueva",
+    },
+    createdAt: {
+      type: "string",
+      format: "date-time",
+      description: "Fecha de creación en formato ISO 8601.",
+      example: "2026-08-14T10:00:00.000Z",
     },
   },
 };
@@ -668,6 +999,268 @@ export const openapiSpec: OpenAPISpec = {
         },
       },
     },
+    "/api/hogares": {
+      get: {
+        operationId: "listHogares",
+        summary: "Listar hogares de paso verificados",
+        description:
+          "Devuelve la lista pública de hogares de paso: SOLO los que el equipo " +
+          "coordinador ya verificó (llamada + documento) y que no están en pausa. " +
+          "Cada hogar viene proyectado como `HogarPublico`: NUNCA incluye nombre, " +
+          "teléfono, documento ni dirección del anfitrión. El contacto entre las " +
+          "partes es siempre mediado por el equipo coordinador; no hay forma de " +
+          "contactar a un anfitrión a través de esta API.",
+        tags: ["Hogares de Paso"],
+        responses: {
+          "200": {
+            description: "Lista pública de hogares obtenida correctamente.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/HogarPublico" },
+                  description: "Hogares verificados y activos, sanitizados.",
+                },
+                example: [
+                  {
+                    id: "hogar-abc123",
+                    ciudad: "Manizales",
+                    zona: "Cerca al centro",
+                    capacidad: 3,
+                    acepta: ["mujeres", "ninos", "gatos"],
+                    ofrece: ["alimentacion", "cama", "internet"],
+                    duracion: "semanas",
+                    convivencia: "familia_con_ninos",
+                    notas: "Tenemos un patio grande, las mascotas son bienvenidas.",
+                    disponibilidad: "disponible",
+                    verificacion: "verificado",
+                    updatedAt: "2026-08-12T09:00:00.000Z",
+                  },
+                ],
+              },
+            },
+          },
+          "500": {
+            description: "Error interno del servidor.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: { error: "Error interno al obtener los hogares." },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        operationId: "createHogar",
+        summary: "Ofrecer una casa como hogar de paso",
+        description:
+          "Registra un hogar de paso. Los datos personales del anfitrión " +
+          "(nombre, teléfono, documento, dirección) se usan únicamente para la " +
+          "verificación y jamás se publican.\n\n" +
+          "Flujo de verificación: el hogar entra con `verificacion: pendiente` y " +
+          "NO aparece en la lista pública. El equipo coordinador llama al " +
+          "teléfono registrado, valida el documento y solo entonces lo marca " +
+          "como `verificado` y lo publica.\n\n" +
+          "La respuesta viene sanitizada: devuelve la proyección `HogarPublico`, " +
+          "sin datos sensibles — ni siquiera quien registró el hogar recibe de " +
+          "vuelta su teléfono o dirección, para que la respuesta sea inofensiva " +
+          "en logs y devtools.",
+        tags: ["Hogares de Paso"],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/HogarInput" },
+              example: {
+                nombre: "María Fernanda López",
+                telefono: "310 555 1234",
+                documento: "1053812345",
+                direccion: "Solo la ve el equipo coordinador",
+                ciudad: "Manizales",
+                zona: "Cerca al centro",
+                capacidad: 3,
+                acepta: ["mujeres", "ninos", "gatos"],
+                ofrece: ["alimentacion", "cama", "internet"],
+                duracion: "semanas",
+                convivencia: "familia_con_ninos",
+                notas: "Tenemos un patio grande.",
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "Hogar registrado, pendiente de verificación. La respuesta está " +
+              "sanitizada: solo la proyección pública más un mensaje que " +
+              "explica los siguientes pasos.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["hogar", "mensaje"],
+                  properties: {
+                    hogar: { $ref: "#/components/schemas/HogarPublico" },
+                    mensaje: {
+                      type: "string",
+                      description:
+                        "Mensaje para el anfitrión sobre la llamada de verificación.",
+                    },
+                  },
+                },
+                example: {
+                  hogar: {
+                    id: "hogar-abc123",
+                    ciudad: "Manizales",
+                    zona: "Cerca al centro",
+                    capacidad: 3,
+                    acepta: ["mujeres", "ninos", "gatos"],
+                    ofrece: ["alimentacion", "cama", "internet"],
+                    duracion: "semanas",
+                    convivencia: "familia_con_ninos",
+                    notas: "Tenemos un patio grande.",
+                    disponibilidad: "disponible",
+                    verificacion: "pendiente",
+                    updatedAt: "2026-08-14T10:00:00.000Z",
+                  },
+                  mensaje:
+                    "¡Gracias por abrir tu casa! El equipo coordinador te llamará al número que dejaste para verificar los datos. Tu hogar se publica solo después de esa llamada, y tu dirección y teléfono nunca se muestran públicamente.",
+                },
+              },
+            },
+          },
+          "400": {
+            description: "Datos inválidos. Revisa los mensajes de error por campo.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: {
+                  error: "Datos inválidos",
+                  fields: {
+                    telefono: ["Ingresa un teléfono válido; por ahí te contactamos."],
+                    acepta: [
+                      "Los niños siempre llegan acompañados: selecciona también familias o adultos.",
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          "503": {
+            description:
+              "Servicio no disponible: este despliegue no tiene base de datos configurada.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: {
+                  error:
+                    "El registro de hogares no está disponible: este despliegue no tiene base de datos configurada. " +
+                    "Configura una base Postgres (DATABASE_URL) para habilitar Hogares de Paso.",
+                },
+              },
+            },
+          },
+          "500": {
+            description: "Error interno del servidor.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: { error: "Error interno al registrar el hogar." },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/api/hogares/solicitudes": {
+      post: {
+        operationId: "createSolicitudHogar",
+        summary: "Solicitar hospedaje en un hogar de paso",
+        description:
+          "Crea una solicitud de hospedaje. La solicitud es enteramente " +
+          "PRIVADA: quien necesita techo nunca aparece en ninguna lista " +
+          "pública, y solo el equipo coordinador la ve. El equipo llama al " +
+          "teléfono registrado, busca un hogar compatible respetando las " +
+          "`preferencias` de convivencia, y media todo el contacto.\n\n" +
+          "Por eso la respuesta es mínima: `{ id, estado, createdAt }` — " +
+          "suficiente para guardar el número de radicado, sin eco de los " +
+          "datos personales.",
+        tags: ["Hogares de Paso"],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/SolicitudInput" },
+              example: {
+                nombre: "Carlos Andrés Gómez",
+                telefono: "+57 301 222 3344",
+                ciudad: "Manizales",
+                personas: 4,
+                composicion: ["mujeres", "ninos", "perros"],
+                preferencias: ["familia_con_ninos", "mujeres_adultas"],
+                notas: "Perdimos la casa en el sismo; el perro es pequeño y tranquilo.",
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "Solicitud registrada. Respuesta mínima con el número de radicado.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/SolicitudCreada" },
+                example: {
+                  id: "solicitud-xyz789",
+                  estado: "nueva",
+                  createdAt: "2026-08-14T10:00:00.000Z",
+                },
+              },
+            },
+          },
+          "400": {
+            description: "Datos inválidos. Revisa los mensajes de error por campo.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: {
+                  error: "Datos inválidos",
+                  fields: {
+                    composicion: [
+                      "Cuéntanos quiénes son; así buscamos el hogar adecuado.",
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          "503": {
+            description:
+              "Servicio no disponible: este despliegue no tiene base de datos configurada.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: {
+                  error:
+                    "El registro de solicitudes no está disponible: este despliegue no tiene base de datos configurada. " +
+                    "Configura una base Postgres (DATABASE_URL) para habilitar Hogares de Paso.",
+                },
+              },
+            },
+          },
+          "500": {
+            description: "Error interno del servidor.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiError" },
+                example: { error: "Error interno al registrar la solicitud." },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -677,6 +1270,16 @@ export const openapiSpec: OpenAPISpec = {
       OperationalStatus: operationalStatusEnum,
       Center: centerSchema,
       CenterInput: centerInputSchema,
+      HogarAcepta: hogarAceptaEnum,
+      HogarOfrece: hogarOfreceEnum,
+      HogarDuracion: hogarDuracionEnum,
+      Convivencia: convivenciaEnum,
+      HogarDisponibilidad: hogarDisponibilidadEnum,
+      HogarVerificacion: hogarVerificacionEnum,
+      HogarPublico: hogarPublicoSchema,
+      HogarInput: hogarInputSchema,
+      SolicitudInput: solicitudInputSchema,
+      SolicitudCreada: solicitudCreadaSchema,
       ApiError: apiErrorSchema,
     },
   },

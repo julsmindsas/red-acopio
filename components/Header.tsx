@@ -23,6 +23,7 @@ const REPO_URL = "https://github.com/julsmindsas/red-acopio";
 const NAV = [
   { href: "/", label: "Inicio" },
   { href: "/mapa", label: "Mapa" },
+  { href: "/hogares", label: "Hogares" },
   { href: "/ayuda", label: "Cómo ayudar" },
   { href: "/reportar", label: "Recomendar" },
   { href: "/api-docs", label: "API" },

@@ -6,6 +6,7 @@ import Stats from "@/components/landing/Stats";
 import Steps from "@/components/landing/Steps";
 import Features from "@/components/landing/Features";
 import MascotasSection from "@/components/landing/MascotasSection";
+import HogaresSection from "@/components/landing/HogaresSection";
 import ApiTeaser from "@/components/landing/ApiTeaser";
 import OpenSource from "@/components/landing/OpenSource";
 import Footer from "@/components/landing/Footer";
@@ -47,6 +48,10 @@ export default async function Home() {
         <Stats centers={centers} />
         <Steps />
         <Features />
+        {/* Hogares de paso va antes que mascotas: dormir bajo techo es más
+            urgente que donar insumos, y ambos paneles cuentan la misma
+            historia de cuidado (personas primero, sus animales después). */}
+        <HogaresSection />
         <MascotasSection />
         <ApiTeaser />
         <OpenSource />

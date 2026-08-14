@@ -37,6 +37,9 @@ yarn-error.log*
 # Red de Acopio
 # Store JSON local mutable (desarrollo). La semilla versionada es data/centers.seed.json
 data/centers.local.json
+# Hogares de paso: contiene nombres, teléfonos, documentos y direcciones de
+# personas reales. JAMÁS debe entrar al repositorio.
+data/hogares.local.json
 # Salida cruda del scraper (datos sin curar). Lo curado se integra a la semilla.
 /data/scraped/
 
