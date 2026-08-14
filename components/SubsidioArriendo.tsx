@@ -34,7 +34,7 @@ export default function SubsidioArriendo() {
   return (
     <section
       aria-labelledby="subsidio-titulo"
-      className="rounded-2xl border-2 border-brand-300 bg-brand-50/60 p-5"
+      className="rounded-2xl border-2 border-brand-500/40 bg-brand-500/10 p-5"
     >
       <p className="text-xs font-bold uppercase tracking-wide text-brand-700">
         Si tu casa quedó inhabitable
@@ -92,7 +92,7 @@ export default function SubsidioArriendo() {
 
       {/* Honestidad sobre lo que todavía no se sabe: prometer un monto que
           nadie ha publicado haría que la gente planeara con una cifra falsa. */}
-      <p className="mt-4 border-t border-brand-200 pt-3 text-xs leading-relaxed text-foreground/60">
+      <p className="mt-4 border-t border-brand-500/30 pt-3 text-xs leading-relaxed text-foreground/60">
         El Gobierno aún no ha publicado el monto, la duración ni la fecha de
         apertura de solicitudes. Lo que sí puedes hacer hoy es{" "}
         <strong className="font-semibold text-foreground/80">

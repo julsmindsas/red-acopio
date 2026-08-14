@@ -137,9 +137,12 @@ export default async function HogaresPage() {
 
         {/* ---- Seguridad: visible ANTES de la lista. Es lo que hace posible
              que alguien acepte dormir en casa de un desconocido. ---- */}
+        {/* Tinte del brand a baja opacidad, no pastel fijo: brand-50/60 sobre
+            la superficie oscura dejaba una banda clara con texto claro encima
+            (ilegible en tema oscuro). */}
         <section
           aria-labelledby="seguridad-titulo"
-          className="mt-10 rounded-2xl border-2 border-brand-300 bg-brand-50/60 p-5 sm:p-6"
+          className="mt-10 rounded-2xl border-2 border-brand-500/40 bg-brand-500/10 p-5 sm:p-6"
         >
           <h2
             id="seguridad-titulo"
