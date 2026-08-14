@@ -170,6 +170,21 @@ export async function enviarCorreo(opts: {
 // Plantillas (HTML sencillo, legible en cualquier cliente de correo)
 // ---------------------------------------------------------------------------
 
+/**
+ * Escapa TODO valor escrito por usuarios antes de interpolarlo en el HTML.
+ * Sin esto, un solicitante malicioso podría poner `<a href=...>` en su nombre
+ * o sus notas y el anfitrión recibiría un enlace de phishing con nuestro
+ * diseño y nuestra confianza.
+ */
+function esc(valor: string | null | undefined): string {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /** Envoltorio común: marca arriba, contenido, y el porqué del correo abajo. */
 function plantilla(titulo: string, cuerpo: string): string {
   return `
@@ -186,7 +201,9 @@ function plantilla(titulo: string, cuerpo: string): string {
 }
 
 function botonHtml(url: string, texto: string): string {
-  return `<a href="${url}" style="display:inline-block;background:#059669;color:#fff;font-weight:700;padding:12px 22px;border-radius:999px;text-decoration:none">${texto}</a>`;
+  // Las URLs se construyen siempre en el servidor, pero se escapan igual:
+  // defensa en profundidad para el atributo href.
+  return `<a href="${esc(url)}" style="display:inline-block;background:#059669;color:#fff;font-weight:700;padding:12px 22px;border-radius:999px;text-decoration:none">${texto}</a>`;
 }
 
 /** Describe al grupo solicitante SIN datos personales. */
@@ -200,10 +217,10 @@ function resumenGrupo(s: SolicitudHogar): string {
   const notas = retirarDatosDeContacto(s.notas);
   return `
     <ul style="line-height:1.7;padding-left:18px">
-      <li><strong>Grupo:</strong> ${personas}</li>
-      <li><strong>Quiénes son:</strong> ${quienes}</li>
-      <li><strong>Ciudad:</strong> ${s.ciudad}</li>
-      ${notas ? `<li><strong>Notas:</strong> ${notas}</li>` : ""}
+      <li><strong>Grupo:</strong> ${esc(personas)}</li>
+      <li><strong>Quiénes son:</strong> ${esc(quienes)}</li>
+      <li><strong>Ciudad:</strong> ${esc(s.ciudad)}</li>
+      ${notas ? `<li><strong>Notas:</strong> ${esc(notas)}</li>` : ""}
     </ul>`;
 }
 
@@ -216,7 +233,7 @@ export function correoBienvenidaAnfitrion(
     html: plantilla(
       "¡Gracias por abrir tu casa!",
       `
-      <p>Tu hogar en <strong>${hogar.ciudad}</strong> ya aparece en la lista pública,
+      <p>Tu hogar en <strong>${esc(hogar.ciudad)}</strong> ya aparece en la lista pública,
       solo con la información general: capacidad, a quiénes recibes y quiénes viven
       contigo. Tu nombre, teléfono, correo y dirección <strong>nunca se publican</strong>.</p>
       <p>Cuando alguien solicite tu hogar te llegará un correo como este con los
@@ -239,7 +256,7 @@ export function correoNuevaSolicitud(
     html: plantilla(
       "Una familia quiere hospedarse contigo",
       `
-      <p>Alguien solicitó tu hogar en <strong>${hogar.ciudad}</strong>. Este es el
+      <p>Alguien solicitó tu hogar en <strong>${esc(hogar.ciudad)}</strong>. Este es el
       resumen del grupo (por seguridad, sin nombres ni teléfonos):</p>
       ${resumenGrupo(solicitud)}
       <p>Tú decides. Si aceptas, ambas partes recibirán el contacto del otro y un
@@ -263,8 +280,8 @@ export function correoAceptadaAnfitrion(
       `
       <p>Este es el contacto de la persona que llegará a tu casa:</p>
       <ul style="line-height:1.7;padding-left:18px">
-        <li><strong>Nombre:</strong> ${solicitud.nombre}</li>
-        <li><strong>Teléfono:</strong> ${solicitud.telefono}</li>
+        <li><strong>Nombre:</strong> ${esc(solicitud.nombre)}</li>
+        <li><strong>Teléfono:</strong> ${esc(solicitud.telefono)}</li>
       </ul>
       <p>Su <strong>código de confirmación</strong> es:</p>
       <p style="font-size:32px;font-weight:800;letter-spacing:6px;text-align:center;background:#ecfdf5;border-radius:12px;padding:14px">${codigo}</p>
@@ -286,11 +303,11 @@ export function correoAceptadaSolicitante(
     html: plantilla(
       "Hay una casa esperándote",
       `
-      <p>El hogar en <strong>${hogar.ciudad}${hogar.zona ? ` (${hogar.zona})` : ""}</strong>
+      <p>El hogar en <strong>${esc(hogar.ciudad)}${hogar.zona ? ` (${esc(hogar.zona)})` : ""}</strong>
       aceptó recibirlos. Este es el contacto para coordinar la llegada:</p>
       <ul style="line-height:1.7;padding-left:18px">
-        <li><strong>Anfitrión:</strong> ${hogar.nombre}</li>
-        <li><strong>Teléfono:</strong> ${hogar.telefono}</li>
+        <li><strong>Anfitrión:</strong> ${esc(hogar.nombre)}</li>
+        <li><strong>Teléfono:</strong> ${esc(hogar.telefono)}</li>
         <li><strong>En esa casa:</strong> ${CONVIVENCIA_LABELS[hogar.convivencia].toLowerCase()}</li>
       </ul>
       <p>Tu <strong>código de confirmación</strong> es:</p>
