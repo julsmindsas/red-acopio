@@ -10,6 +10,7 @@
  * de radicado, sin eco de sus datos personales.
  */
 import type { NextRequest } from "next/server";
+import { after } from "next/server";
 import type { ApiError } from "@/lib/types";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth";
 import { solicitudInputSchema } from "@/lib/hogares/validation";
@@ -93,7 +94,9 @@ export async function POST(req: Request) {
           );
           const url = `${baseUrl()}/hogares/respuesta?token=${encodeURIComponent(token)}`;
           const correo = correoNuevaSolicitud(hogar, solicitud, url);
-          void enviarCorreo({ to: hogar.email, ...correo });
+          const destinatario = hogar.email;
+          // after(): garantiza el envío tras la respuesta (serverless).
+          after(() => enviarCorreo({ to: destinatario, ...correo }));
         }
       } catch (err) {
         console.error("[POST /api/hogares/solicitudes] aviso al anfitrión", err);

@@ -16,7 +16,7 @@
  * estado sería aceptado "solo" por los escáneres de correo.
  */
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getHogaresRepository } from "@/lib/hogares/store";
 import { razonesIncompatibilidad } from "@/lib/hogares/match";
 import { generarCodigoVerificacion } from "@/lib/hogares/codigo";
@@ -117,7 +117,8 @@ export async function POST(req: NextRequest) {
     // Al solicitante se le avisa sin revelar nada del hogar.
     if (solicitud.email) {
       const correo = correoRechazadaSolicitante(solicitud);
-      void enviarCorreo({ to: solicitud.email, ...correo });
+      const destinatario = solicitud.email;
+      after(() => enviarCorreo({ to: destinatario, ...correo }));
     }
     return NextResponse.json({ resultado: "rechazada" });
   }
@@ -143,13 +144,16 @@ export async function POST(req: NextRequest) {
   await repo.updateHogar(hogar.id, { disponibilidad: "ocupado" });
 
   // Compartir contacto: primera y única vez, y solo entre las dos partes.
+  // after(): los envíos corren garantizados tras responder (serverless).
   if (hogar.email) {
     const correo = correoAceptadaAnfitrion(hogar, solicitud, codigo);
-    void enviarCorreo({ to: hogar.email, ...correo });
+    const destinatario = hogar.email;
+    after(() => enviarCorreo({ to: destinatario, ...correo }));
   }
   if (solicitud.email) {
     const correo = correoAceptadaSolicitante(hogar, solicitud, codigo);
-    void enviarCorreo({ to: solicitud.email, ...correo });
+    const destinatario = solicitud.email;
+    after(() => enviarCorreo({ to: destinatario, ...correo }));
   }
 
   // El anfitrión ve en pantalla el contacto y el código (el solicitante puede

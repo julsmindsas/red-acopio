@@ -49,3 +49,5 @@ data/hogares.local.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.env*

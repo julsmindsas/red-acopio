@@ -14,6 +14,7 @@
  * Sin CORS abierto: igual que /api/centers, este endpoint es interno de la app.
  */
 import type { NextRequest } from "next/server";
+import { after } from "next/server";
 import type { ApiError } from "@/lib/types";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth";
 import { toHogarPublico } from "@/lib/hogares/types";
@@ -117,7 +118,10 @@ export async function POST(req: Request) {
         const token = crearToken({ acc: "pausar", hid: hogar.id }, 180);
         const url = `${baseUrl()}/hogares/respuesta?token=${encodeURIComponent(token)}`;
         const correo = correoBienvenidaAnfitrion(hogar, url);
-        void enviarCorreo({ to: hogar.email, ...correo });
+        const destinatario = hogar.email;
+        // after(): el envío corre garantizado DESPUÉS de responder; un
+        // `void` suelto puede morir cuando la función serverless se congela.
+        after(() => enviarCorreo({ to: destinatario, ...correo }));
       } catch (err) {
         console.error("[POST /api/hogares] correo de bienvenida", err);
       }
