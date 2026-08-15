@@ -6,10 +6,11 @@
  * llevan `official: true` y el orquestador los marca como **verificado**.
  *
  * Fuentes:
- *   - Alcaldía de Santiago de Cali (cali.gov.co), 2026-08-11
+ *   - Alcaldía de Santiago de Cali (cali.gov.co), 2026-08-11 y 2026-08-14
  *   - Gobernación del Quindío (quindio.gov.co), 2026-08-11
+ *   - Alcaldía de Armenia (armenia.gov.co), 2026-08-14
  *
- * Ambas las detectó el monitor `portales-oficiales.ts` y se curaron a mano.
+ * Todas las detectó el monitor `portales-oficiales.ts` y se curaron a mano.
  */
 
 import * as cheerio from "cheerio";
@@ -20,6 +21,14 @@ const CALI_URL =
 
 const QUINDIO_URL =
   "https://quindio.gov.co/un-llamado-a-la-solidaridad-el-centro-de-convenciones-se-transforma-en-el-centro-de-acopio-para-ayudas-a-afectados-por-el-sismo-2";
+
+/** Albergue de Cali en las Canchas Panamericanas (publicado el 2026-08-14). */
+const CALI_ALBERGUE_URL =
+  "https://www.cali.gov.co/publicaciones/193678/refugio-y-solidaridad-asi-se-vive-en-el-albergue-temporal-ubicado-en-las-canchas-panamericanas/";
+
+/** Albergue de Armenia en el Coliseo del Sur (publicado el 2026-08-14). */
+const ARMENIA_ALBERGUE_URL =
+  "https://www.armenia.gov.co/varias-familias-pasaron-la-primera-noche-en-el-albergue-habilitado-por-la-alcaldia-de-armenia-tras-el-terremoto";
 
 const CENTERS: RawCenter[] = [
   {
@@ -79,6 +88,34 @@ const CENTERS: RawCenter[] = [
     verifyToken: "Centro de Convenciones",
     notes:
       "La Gobernación del Quindío habilitó el Centro de Convenciones como centro de acopio para los afectados por el sismo.",
+  },
+  // --- Albergues: hasta ahora Cali y Armenia solo tenían acopios en el mapa,
+  // así que quien buscaba dónde dormir en esas ciudades no encontraba nada. ---
+  {
+    name: "Albergue temporal — Canchas Panamericanas",
+    kind: "albergue",
+    address:
+      "Unidad Deportiva Jaime Aparicio (Canchas Panamericanas), coliseos de Hockey Miguel Calero y de Karate-Do, Cali",
+    sourceUrl: CALI_ALBERGUE_URL,
+    official: true,
+    municipality: "Cali",
+    geoQuery:
+      "Unidad Deportiva Jaime Aparicio, Cali, Valle del Cauca, Colombia",
+    verifyToken: "Panamericanas",
+    notes:
+      "Albergue de la Alcaldía de Cali. Al 14 de agosto alojaba a 129 personas. Ofrece censo de pérdidas, kits de aseo y vestuario, valoración médica, control de enfermedades crónicas, entrega de medicamentos, vacunación, apoyo psicológico y acompañamiento prioritario a menores. IMPORTANTE: recibe familias, no ingresos individuales.",
+  },
+  {
+    name: "Albergue temporal — Coliseo del Sur",
+    kind: "albergue",
+    address: "Coliseo del Sur, Armenia, Quindío",
+    sourceUrl: ARMENIA_ALBERGUE_URL,
+    official: true,
+    municipality: "Armenia",
+    geoQuery: "Coliseo del Sur, Armenia, Quindío, Colombia",
+    verifyToken: "Coliseo del Sur",
+    notes:
+      "Albergue de la Alcaldía de Armenia con capacidad para unas 25 familias. Tiene espacios delimitados con colchonetas y cobijas, kits de aseo, duchas y baterías sanitarias, alimentación por ollas comunitarias, atención médica y jornadas de vacunación, con acompañamiento de la Personería Municipal. Conviene registrarse en el formulario de afectaciones de la Alcaldía, pero también se atiende a quien llegue sin registro previo.",
   },
 ];
 
