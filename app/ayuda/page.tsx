@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import HelpChannels from "@/components/HelpChannels";
 import SubsidioArriendo from "@/components/SubsidioArriendo";
+import AyudasOficiales from "@/components/AyudasOficiales";
 import { EMERGENCY } from "@/lib/constants";
 
 /*
@@ -70,6 +71,12 @@ export default function AyudaPage() {
 
         <div className="mt-6">
           <HelpChannels />
+        </div>
+
+        {/* Va después de los canales nacionales: son ayudas locales concretas
+            (una cuenta, un correo) que complementan las líneas generales. */}
+        <div className="mt-8">
+          <AyudasOficiales />
         </div>
 
         <div className="mt-8 rounded-2xl border border-border bg-surface-muted p-5">
