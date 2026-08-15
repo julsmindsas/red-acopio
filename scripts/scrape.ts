@@ -109,9 +109,12 @@ function categoriesForPhrase(phrase: string): MaterialCategory[] {
   const p = stripAccents(phrase.toLowerCase());
   const out = new Set<MaterialCategory>();
 
-  // "alimento para mascotas" -> otros (y NO alimentos): se trata aparte.
-  if (p.includes("mascota")) {
-    out.add("otros");
+  // Lo de los animales va a su propia categoría y NO a "alimentos": quien
+  // filtra por mascotas busca comida de perro, no mercados. La regla sale
+  // antes que las demás para que "alimento para mascotas" no caiga también
+  // en "alimentos" y mande a esa gente a un centro que no recibe animales.
+  if (/(mascota|veterinari|perro|gato|animal)/.test(p)) {
+    out.add("mascotas");
     return [...out];
   }
 

@@ -145,18 +145,18 @@
     "kind": "albergue",
     "phone": null,
     "materials": [],
-    "operational": "desconocido",
+    "operational": "lleno",
     "schedule": "Horario no publicado",
     "lat": 4.8150909,
     "lng": -75.7090134,
     "city": "Pereira",
     "country": "Colombia",
-    "notes": "Albergue temporal habilitado por la Alcaldía de Pereira tras el sismo del 10 de agosto de 2026, según El Diario. La fuente no publicó dirección exacta.",
+    "notes": "LÍMITE DE AFORO: la Alcaldía de Pereira pidió dirigirse a los otros albergues (Ecoparque El Vergel, Parque El Oso, Parque Olaya o Estadio Mora Mora). Actualización oficial del 11 de agosto de 2026, 6:00 p. m.",
     "geoNote": "Geocodificación a nivel de calle vía Nominatim/OSM, 2026-08-10 (no a número de puerta exacto).",
     "source": "https://www.eldiario.com.co/actualidad/emergencia-en-pereira-avanzan-labores-de-busqueda-y-rescate/",
     "status": "sin_verificar",
     "createdAt": "2026-08-10T00:00:00.000Z",
-    "updatedAt": "2026-08-10T00:00:00.000Z"
+    "updatedAt": "2026-08-15T00:51:16.749Z"
   },
   {
     "id": "albergue-temporal-parque-el-vergel",
@@ -1022,7 +1022,8 @@
     "kind": "acopio",
     "phone": null,
     "materials": [
-      "otros"
+      "otros",
+      "mascotas"
     ],
     "operational": "desconocido",
     "schedule": "Horario no publicado",
@@ -1035,7 +1036,7 @@
     "source": "https://www.eltiempo.com/datos/este-es-el-mapa-completo-de-los-centros-de-acopio-habilitados-en-colombia-para-ayudar-a-los-damnificados-del-terremoto-de-magnitud-7-3577654",
     "status": "sin_verificar",
     "createdAt": "2026-08-10T00:00:00.000Z",
-    "updatedAt": "2026-08-10T00:00:00.000Z"
+    "updatedAt": "2026-08-15T00:51:16.747Z"
   },
   {
     "id": "donacion-de-sangre-hospital-universitario-del-valle",
@@ -1418,6 +1419,34 @@
     "notes": "Albergue de la Alcaldía de Armenia con capacidad para unas 25 familias. Tiene espacios delimitados con colchonetas y cobijas, kits de aseo, duchas y baterías sanitarias, alimentación por ollas comunitarias, atención médica y jornadas de vacunación, con acompañamiento de la Personería Municipal. Conviene registrarse en el formulario de afectaciones de la Alcaldía, pero también se atiende a quien llegue sin registro previo.",
     "geoNote": "Geocodificación a nivel de calle vía Nominatim/OSM, 2026-08-10 (no a número de puerta exacto).",
     "source": "https://www.armenia.gov.co/varias-familias-pasaron-la-primera-noche-en-el-albergue-habilitado-por-la-alcaldia-de-armenia-tras-el-terremoto",
+    "status": "verificado",
+    "createdAt": "2026-08-10T00:00:00.000Z",
+    "updatedAt": "2026-08-10T00:00:00.000Z"
+  },
+  {
+    "id": "croe-centro-regional-de-operaciones-de-emergencias",
+    "name": "CROE — Centro Regional de Operaciones de Emergencias",
+    "address": "Avenida de las Américas con calle 95, lote 1 (enseguida de la Policía de Carreteras), Pereira, Risaralda",
+    "kind": "acopio",
+    "phone": null,
+    "materials": [
+      "alimentos",
+      "agua",
+      "ropa",
+      "medicamentos",
+      "aseo",
+      "cobijas",
+      "mascotas"
+    ],
+    "operational": "desconocido",
+    "schedule": "Horario no publicado",
+    "lat": 4.8086729,
+    "lng": -75.7664587,
+    "city": "Pereira",
+    "country": "Colombia",
+    "notes": "Punto central de la Gobernación de Risaralda para recibir la ayuda humanitaria del departamento. Los vehículos que transportan ayuda NO tienen restricción de movilidad para llegar aquí. También es el acopio para animales afectados: piden comida de perros y gatos (cachorros y adultos), insumos veterinarios (clorhexidina, bacsidil, desinfectantes de heridas, cremas antibióticas), naproxeno y meloxicam, cobijas, camas, collares isabelinos, arneses con correa, cocas de concentrado y agua para animales.",
+    "geoNote": "Geocodificación a nivel de calle vía Nominatim/OSM, 2026-08-10 (no a número de puerta exacto).",
+    "source": "https://www.risaralda.gov.co/publicaciones/164029/informacion-importante-terremoto/",
     "status": "verificado",
     "createdAt": "2026-08-10T00:00:00.000Z",
     "updatedAt": "2026-08-10T00:00:00.000Z"

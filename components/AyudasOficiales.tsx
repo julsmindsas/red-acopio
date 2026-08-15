@@ -26,6 +26,38 @@ interface Ayuda {
 
 const AYUDAS: Ayuda[] = [
   {
+    // Va primero porque tiene fecha de vencimiento: alguien que salga a llevar
+    // una donación en carro sin saber esto se devuelve o lo multan.
+    emoji: "🚗",
+    etiqueta: "Pereira",
+    titulo: "Restricción de carros en la ciudad",
+    descripcion:
+      "La Alcaldía prohibió la circulación de carros particulares mientras se atiende la emergencia. Si vas a mover ayuda, revisa antes cómo llegar.",
+    datos: [
+      {
+        termino: "Vigencia",
+        valor:
+          "Desde el miércoles 12 a medianoche hasta el lunes siguiente a las 8:00 p. m.",
+      },
+      {
+        termino: "Sí pueden circular",
+        valor: "Taxis, motocicletas y las rutas habilitadas de Megabús",
+      },
+      {
+        termino: "Excepciones",
+        valor:
+          "Personal médico y de salud, apoyo logístico con ayudas humanitarias, brigadas de rescate identificadas y prensa",
+      },
+      { termino: "Motos", valor: "El pico y placa se mantiene con normalidad" },
+    ],
+    aclaracion:
+      "Los vehículos que transportan ayuda humanitaria hacia el CROE (Avenida de las Américas con calle 95) no tienen restricción de movilidad: puedes ir directo a entregar.",
+    fuente: {
+      url: "https://www.risaralda.gov.co/publicaciones/164029/informacion-importante-terremoto/",
+      entidad: "Gobernación de Risaralda y Alcaldía de Pereira",
+    },
+  },
+  {
     emoji: "💳",
     etiqueta: "Quindío",
     titulo: "Cuenta oficial para donar dinero",

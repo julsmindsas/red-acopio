@@ -30,6 +30,15 @@ const CALI_ALBERGUE_URL =
 const ARMENIA_ALBERGUE_URL =
   "https://www.armenia.gov.co/varias-familias-pasaron-la-primera-noche-en-el-albergue-habilitado-por-la-alcaldia-de-armenia-tras-el-terremoto";
 
+/**
+ * Centro de operaciones de emergencia de Risaralda (CROE), publicado por la
+ * Gobernación el 2026-08-13. El portal bloquea al scraper con HTTP 403 y la
+ * información va en afiches dentro de un carrusel, así que se leyó con el
+ * navegador y se curó a mano.
+ */
+const RISARALDA_CROE_URL =
+  "https://www.risaralda.gov.co/publicaciones/164029/informacion-importante-terremoto/";
+
 const CENTERS: RawCenter[] = [
   {
     name: "Centro de acopio — Plazoleta Jairo Varela",
@@ -116,6 +125,32 @@ const CENTERS: RawCenter[] = [
     verifyToken: "Coliseo del Sur",
     notes:
       "Albergue de la Alcaldía de Armenia con capacidad para unas 25 familias. Tiene espacios delimitados con colchonetas y cobijas, kits de aseo, duchas y baterías sanitarias, alimentación por ollas comunitarias, atención médica y jornadas de vacunación, con acompañamiento de la Personería Municipal. Conviene registrarse en el formulario de afectaciones de la Alcaldía, pero también se atiende a quien llegue sin registro previo.",
+  },
+  {
+    // Es el punto al que la Gobernación pide llevar la ayuda del departamento
+    // entero, y no estaba en el mapa. Recibe además insumos para animales, que
+    // hasta ahora ningún punto del eje cafetero declaraba.
+    name: "CROE — Centro Regional de Operaciones de Emergencias",
+    kind: "acopio",
+    address:
+      "Avenida de las Américas con calle 95, lote 1 (enseguida de la Policía de Carreteras), Pereira, Risaralda",
+    materials: [
+      "agua",
+      "alimentos no perecederos",
+      "cobijas",
+      "ropa",
+      "elementos de aseo",
+      "medicamentos",
+      "alimento para mascotas",
+      "insumos veterinarios",
+    ],
+    sourceUrl: RISARALDA_CROE_URL,
+    official: true,
+    municipality: "Pereira",
+    geoQuery: "Avenida de las Américas, Pereira, Risaralda, Colombia",
+    verifyToken: "Terremoto",
+    notes:
+      "Punto central de la Gobernación de Risaralda para recibir la ayuda humanitaria del departamento. Los vehículos que transportan ayuda NO tienen restricción de movilidad para llegar aquí. También es el acopio para animales afectados: piden comida de perros y gatos (cachorros y adultos), insumos veterinarios (clorhexidina, bacsidil, desinfectantes de heridas, cremas antibióticas), naproxeno y meloxicam, cobijas, camas, collares isabelinos, arneses con correa, cocas de concentrado y agua para animales.",
   },
 ];
 
